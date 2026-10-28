@@ -23,6 +23,9 @@ export class AppController {
       '<h1>Ça fonctionne ! 🎉</h1><p>Votre application  envoie bien des e-mails avec Gmail.</p>' // 👈 Correction de la balise <p>
     );
 
-    return result;
+    
+   return result.success
+    ? { success: true }
+    : { success: false, error: (result.error as Error).message };
   }
 }

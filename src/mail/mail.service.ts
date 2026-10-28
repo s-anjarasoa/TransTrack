@@ -1,65 +1,76 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
 import { Billet } from 'src/entities/billet.entity';
- 
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private transporter: nodemailer.Transporter;
-  private from: string;
+  private readonly apiKey: string;
+  private readonly senderEmail: string;
+  private readonly senderName = 'TransTrack';
 
   constructor(private configService: ConfigService) {
-    const user = this.configService.get<string>('MAIL_USER');
-    const pass = this.configService.get<string>('MAIL_PASS');
+    this.apiKey = this.configService.get<string>('BREVO_API_KEY') ?? '';
+    this.senderEmail = this.configService.get<string>('MAIL_USER') ?? '';
 
-    if (!user || !pass) {
-      this.logger.error('MAIL_USER ou MAIL_PASS manquant dans le .env');
+    if (!this.apiKey || !this.senderEmail) {
+      this.logger.error(
+        "BREVO_API_KEY ou MAIL_USER manquant dans les variables d'environnement",
+      );
     }
-
-    this.from = this.configService.get<string>('MAIL_FROM') ?? `TransTrack <${user}>`;
-
-    this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user, pass },
-    });
   }
 
-  // ✅ Ta méthode générique existante
+  // Méthode générique : même signature et même retour qu'avant
   async sendMail(to: string, subject: string, html: string) {
     try {
-      const info = await this.transporter.sendMail({
-        from: this.from,
-        to,
-        subject,
-        html,
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': this.apiKey,
+          'Content-Type': 'application/json',
+          accept: 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: this.senderName, email: this.senderEmail },
+          to: [{ email: to }],
+          subject,
+          htmlContent: html,
+        }),
+        signal: AbortSignal.timeout(15000),
       });
-      this.logger.log(`Mail envoyé à ${to}, id=${info.messageId}`);
-      return { success: true, data: info };
+
+      const body: any = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(`Brevo ${res.status}: ${JSON.stringify(body)}`);
+      }
+
+      this.logger.log(`Mail envoyé à ${to}, id=${body.messageId}`);
+      return { success: true, data: body };
     } catch (error: any) {
       this.logger.error(`Échec envoi mail à ${to} : ${error.message}`);
       return { success: false, error };
     }
   }
 
-  // ✅ NOUVELLE MÉTHODE : Envoi du billet (utilise sendMail)
+  // Envoi du billet (utilise sendMail)
   async sendTicketEmail(to: string, billet: Billet): Promise<void> {
     const voyage = billet.reservation?.voyage;
     const route = voyage?.route;
     const client = billet.reservation?.client?.user;
 
     if (!voyage || !route) {
-      this.logger.error('Impossible d\'envoyer le billet : données du voyage manquantes.');
+      this.logger.error(
+        "Impossible d'envoyer le billet : données du voyage manquantes.",
+      );
       return;
     }
 
     const subject = `Votre billet ${billet.numeroBillet} - ${route.depart} → ${route.arrivee}`;
 
-    // Un joli template HTML pour l'email
     const html = `
       <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; background: #FFFFFF;">
-        
+
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #0E7490, #0891B2); padding: 30px 20px; text-align: center;">
           <h1 style="margin: 0; color: #FFFFFF; font-size: 24px;">🎫 Votre Billet TransTrack</h1>
@@ -106,9 +117,8 @@ export class MailService {
       </div>
     `;
 
-    // ✅ Utilise ta méthode existante
     const result = await this.sendMail(to, subject, html);
-    
+
     if (!result.success) {
       throw new Error("Impossible d'envoyer l'email du billet");
     }

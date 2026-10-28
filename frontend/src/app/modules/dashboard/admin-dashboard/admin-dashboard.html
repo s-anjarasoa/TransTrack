@@ -1,0 +1,239 @@
+<div class="dash">
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+  <div class="dash-header">
+    <div class="welcome-text">
+      <h2 class="dash-title">
+       <span class="text-gradient">{{ firstName }}</span>
+      </h2>
+      <p class="dash-subtitle">
+        Voici l'état de la plateforme TransTrack aujourd'hui.
+      </p>
+    </div>
+    <div class="header-date">
+      <mat-icon>calendar_today</mat-icon>
+      <span>{{ today | date:'EEEE d MMMM yyyy' }}</span>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="dash-loading">
+      <div class="spinner"></div>
+      <p>Analyse des données en cours...</p>
+    </div>
+  } @else {
+
+    @if (partialError()) {
+      <div class="alert-card alert-warning">
+        <div class="alert-icon-box">
+          <mat-icon>warning</mat-icon>
+        </div>
+        <div class="alert-content">
+          <h3>Données partielles</h3>
+          <p>Certaines statistiques n'ont pas pu être chargées.</p>
+        </div>
+        <button type="button" class="alert-btn" (click)="reload()">
+          Actualiser
+        </button>
+      </div>
+    }
+
+    @if (totals(); as t) {
+
+      <!-- ============================================================
+           KPI CARDS
+           ============================================================ -->
+      <div class="metric-grid">
+        <div class="metric-card card-teal">
+          <div class="metric-icon-box">
+            <mat-icon>business</mat-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-value">{{ t.societes }}</span>
+            <span class="metric-label">Sociétés</span>
+          </div>
+        </div>
+        
+        <div class="metric-card card-cyan">
+          <div class="metric-icon-box">
+            <mat-icon>group</mat-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-value">{{ t.agents }}</span>
+            <span class="metric-label">Agents</span>
+          </div>
+        </div>
+
+        <div class="metric-card card-emerald">
+          <div class="metric-icon-box">
+            <mat-icon>verified</mat-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-value">{{ t.abonnementsActifs }}</span>
+            <span class="metric-label">Abonnements actifs</span>
+          </div>
+        </div>
+
+        <div class="metric-card card-indigo">
+          <div class="metric-icon-box">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-value">{{ t.clients }}</span>
+            <span class="metric-label">Clients</span>
+          </div>
+        </div>
+
+        <div class="metric-card card-amber">
+          <div class="metric-icon-box">
+            <mat-icon>directions_bus</mat-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-value">{{ t.voyagesEnCours }}</span>
+            <span class="metric-label">Voyages en cours</span>
+          </div>
+        </div>
+
+        <div class="metric-card card-rose">
+          <div class="metric-icon-box">
+            <mat-icon>confirmation_number</mat-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-value">{{ t.reservationsMois }}</span>
+            <span class="metric-label">Réservations (mois)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           CONTENU PRINCIPAL (Graphiques + Actions)
+           ============================================================ -->
+      <div class="main-dashboard-grid">
+        
+        <!-- COLONNE GAUCHE : GRAPHIQUES -->
+        <div class="charts-column">
+          
+          <!-- Graphique d'évolution -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3>Évolution des réservations</h3>
+              <span class="chart-trend-badge">+24% vs sem. dernière</span>
+            </div>
+            <app-area-chart [data]="evolutionChart()" color="#0EA5E9" />
+          </div>
+
+          <!-- Graphiques côte à côte -->
+          <div class="dual-charts">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3>Sociétés</h3>
+                <a routerLink="/societes" class="chart-link">
+                  Gérer <mat-icon>arrow_forward</mat-icon>
+                </a>
+              </div>
+              <app-pie-chart [items]="societeChart()" />
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <h3>Agents</h3>
+                <a routerLink="/agents" class="chart-link">
+                  Gérer <mat-icon>arrow_forward</mat-icon>
+                </a>
+              </div>
+              <app-bar-chart [items]="agentChart()" />
+            </div>
+          </div>
+
+        </div>
+
+        <!-- COLONNE DROITE : ACTION CENTER -->
+        <div class="actions-column">
+          
+          <div class="action-card ">
+            <div class="action-header">
+              <div class="action-title">
+                <mat-icon class="pulse-icon">notifications_active</mat-icon>
+                <span>À traiter</span>
+              </div>
+              <!-- ✅ CORRECTION : Appel avec () pour additionner les valeurs -->
+              <span class="action-badge">
+                {{ societesEnAttente() + abonnementsEnAttente() }}
+              </span>
+            </div>
+
+            <div class="action-list">
+              <!-- ✅ CORRECTION : societesEnAttente() -->
+              @if (societesEnAttente() > 0) {
+                <a routerLink="/societes" class="action-item">
+                  <div class="action-item-left">
+                    <div class="action-icon bg-amber">
+                      <mat-icon>pending_actions</mat-icon>
+                    </div>
+                    <div>
+                      <span class="action-item-title">Sociétés en attente</span>
+                      <span class="action-item-desc">À valider pour être visibles</span>
+                    </div>
+                  </div>
+                  <!-- ✅ CORRECTION : societesEnAttente() -->
+                  <span class="action-count">{{ societesEnAttente() }}</span>
+                </a>
+              }
+
+              <!-- ✅ CORRECTION : abonnementsEnAttente() -->
+              @if (abonnementsEnAttente() > 0) {
+                <a routerLink="/abonnements" class="action-item">
+                  <div class="action-item-left">
+                    <div class="action-icon bg-rose">
+                      <mat-icon>credit_card</mat-icon>
+                    </div>
+                    <div>
+                      <span class="action-item-title">Paiements en attente</span>
+                      <span class="action-item-desc">Abonnements non réglés</span>
+                    </div>
+                  </div>
+                  <!-- ✅ CORRECTION : abonnementsEnAttente() -->
+                  <span class="action-count">{{ abonnementsEnAttente() }}</span>
+                </a>
+              }
+
+              <!-- ✅ CORRECTION : Appels avec () -->
+              @if (societesEnAttente() === 0 && abonnementsEnAttente() === 0) {
+                <div class="action-empty">
+                  <mat-icon>check_circle</mat-icon>
+                  <p>Tout est à jour !</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="quick-links-card">
+            <h3>Accès rapides</h3>
+            <div class="quick-links-grid">
+              <a routerLink="/societes" class="quick-link">
+                <div class="quick-icon"><mat-icon>business</mat-icon></div>
+                <span>Sociétés</span>
+              </a>
+              <a routerLink="/abonnements" class="quick-link">
+                <div class="quick-icon"><mat-icon>card_membership</mat-icon></div>
+                <span>Abonnements</span>
+              </a>
+              <a routerLink="/voyages" class="quick-link">
+                <div class="quick-icon"><mat-icon>directions_bus</mat-icon></div>
+                <span>Voyages</span>
+              </a>
+              <a routerLink="/reservations" class="quick-link">
+                <div class="quick-icon"><mat-icon>receipt_long</mat-icon></div>
+                <span>Réservations</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    }
+  }
+</div>

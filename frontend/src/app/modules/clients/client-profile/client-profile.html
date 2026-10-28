@@ -1,0 +1,109 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Mon Profil</h1>
+    <p class="page-subtitle">
+      @if (hasProfile()) {
+        Gérez vos informations personnelles et identifiants.
+      } @else {
+        Complétez votre profil pour pouvoir valider vos réservations.
+      }
+    </p>
+  </div>
+
+  @if (checking()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de vos informations...</p>
+    </div>
+  } @else {
+
+    @if (!hasProfile()) {
+      <div class="info-banner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+        </svg>
+        <div>
+          <strong>Bienvenue {{ userName }} !</strong>
+          <p>Veuillez renseigner les champs ci-dessous pour activer votre compte client.</p>
+        </div>
+      </div>
+    }
+
+    <div class="form-card">
+      <div class="profile-header-summary">
+        <div class="avatar-large">{{ userName.charAt(0) || 'U' }}</div>
+        <div>
+          <h3 class="user-fullname">{{ userName }}</h3>
+          <p class="user-email-subtitle">{{ userEmail }}</p>
+        </div>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+
+        <div class="field field-full">
+          <label for="address">Adresse de résidence <span class="required">*</span></label>
+          <input
+            id="address"
+            type="text"
+            formControlName="address"
+            class="input"
+            placeholder="Ex: Lot II B 12, Antananarivo"
+            [class.input-error]="form.get('address')?.invalid && form.get('address')?.touched"
+          />
+          @if (form.get('address')?.hasError('required') && form.get('address')?.touched) {
+            <p class="field-error">L'adresse est requise.</p>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="CIN">Numéro CIN <span class="required">*</span></label>
+            <input
+              id="CIN"
+              type="text"
+              formControlName="CIN"
+              class="input"
+              placeholder="Ex: 101012345678"
+              [class.input-error]="form.get('CIN')?.invalid && form.get('CIN')?.touched"
+            />
+            @if (form.get('CIN')?.hasError('required') && form.get('CIN')?.touched) {
+              <p class="field-error">Le CIN est requis.</p>
+            }
+            @if (form.get('CIN')?.hasError('pattern') && form.get('CIN')?.touched) {
+              <p class="field-error">Le CIN doit comporter 12 chiffres.</p>
+            }
+          </div>
+
+          <div class="field">
+            <label for="passport">Numéro Passeport <span class="optional">(Optionnel)</span></label>
+            <input
+              id="passport"
+              type="text"
+              formControlName="passport"
+              class="input"
+              placeholder="Ex: A0012345"
+            />
+          </div>
+        </div>
+
+        @if (errorMessage()) {
+          <div class="field-full banner error-banner">{{ errorMessage() }}</div>
+        }
+        @if (successMessage()) {
+          <div class="field-full banner success-banner">{{ successMessage() }}</div>
+        }
+
+        <div class="field-full form-actions">
+          <button type="submit" class="btn-primary" [disabled]="loading()">
+            @if (loading()) {
+              <span class="btn-spinner"></span>
+              <span>Enregistrement...</span>
+            } @else {
+              <span>{{ hasProfile() ? 'Mettre à jour le profil' : 'Créer mon profil' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

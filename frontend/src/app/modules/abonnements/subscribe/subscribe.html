@@ -1,0 +1,105 @@
+<div class="page">
+  <div class="header">
+    <h1 class="title">
+      <span class="title-icon"><mat-icon>workspace_premium</mat-icon></span>
+      Abonnement
+    </h1>
+    <p class="subtitle">Gérez l'abonnement de votre société.</p>
+  </div>
+
+  <!-- ✅ CONTRÔLE D'ACCÈS (Ajout des parenthèses à isDirecteur()) -->
+  @if (!isAdmin && !isDirecteur()) {
+    <div class="access-denied">
+      <mat-icon>lock</mat-icon>
+      <h2>Accès refusé</h2>
+      <p>Seul le Directeur de la société ou un Administrateur peut accéder à cette page.</p>
+    </div>
+  } @else {
+
+    @if (errorMessage()) {
+      <div class="alert-error">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="state">
+        <div class="spinner"></div>
+        <p>Chargement des données…</p>
+      </div>
+    } @else {
+      
+      @if (history().length > 0) {
+        <div class="history-section">
+          <h2 class="section-title">Mon historique d'abonnements</h2>
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Formule</th>
+                  <th>Début</th>
+                  <th>Expiration</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (sub of history(); track sub.id) {
+                  <tr>
+                    <td class="cell-strong">{{ getTypeLabel(sub.type) }}</td>
+                    <td>{{ sub.dateDebut ? (sub.dateDebut | date:'dd/MM/yyyy') : '—' }}</td>
+                    <td>
+                      <span [class.text-danger]="!isNotExpired(sub)">
+                        {{ sub.dateFin ? (sub.dateFin | date:'dd/MM/yyyy') : '—' }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge" [class]="getSubStatusClass(sub)">
+                        {{ getSubStatusLabel(sub) }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <div class="plans-section">
+        <h2 class="section-title">
+          {{ activeSubscription() ? 'Votre abonnement est actif' : 'Souscrire un abonnement' }}
+        </h2>
+        
+        <div class="plans">
+          @for (plan of plans(); track plan.type) {
+            <div class="plan" [class.plan-featured]="plan.type === 'ANNUELLE'">
+              <h3 class="plan-name">{{ plan.label }}</h3>
+              <p class="plan-price">{{ formatPrice(plan.price) }}</p>
+              <p class="plan-duration">pour {{ plan.duration }}</p>
+
+              <!-- ✅ CORRECTION 3 : Désactivation du bouton si abonnement actif -->
+              <button
+                type="button"
+                class="btn-primary"
+                (click)="subscribe(plan)"
+                [disabled]="payingType() !== null || !!activeSubscription()"
+              >
+                @if (payingType() === plan.type) {
+                  <span class="btn-spinner"></span>
+                  <span>Redirection…</span>
+                } @else if (activeSubscription()) {
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Déjà abonné</span>
+                } @else {
+                  <mat-icon>lock</mat-icon>
+                  <span>Payer en ligne</span>
+                }
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

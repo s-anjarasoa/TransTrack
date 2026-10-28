@@ -1,0 +1,54 @@
+<div class="page">
+  @if (state().loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des détails...</p>
+    </div>
+  } @else if (state().error || !state().data) {
+    <div class="empty-state">
+      <h2>Client introuvable</h2>
+      <a routerLink="/clients" class="btn-secondary">← Retour à la liste</a>
+    </div>
+  } @else {
+    @let client = state().data!;
+    
+    <div class="page-header">
+      <a routerLink="/clients" class="back-link">← Retour aux clients</a>
+      <h1 class="page-title">{{ clientName() }}</h1>
+    </div>
+
+    <div class="detail-card">
+      <div class="card-header">
+        <h3 class="detail-card-title">Informations personnelles</h3>
+      </div>
+      
+      <dl class="detail-grid">
+        <div class="detail-item">
+          <dt>Adresse e-mail</dt>
+          <dd>
+            @if (client.user?.email) {
+              <a href="mailto:{{ client.user?.email }}" class="email-link">{{ client.user?.email }}</a>
+            } @else {
+              <span class="text-muted">Non renseigné</span>
+            }
+          </dd>
+        </div>
+
+        <div class="detail-item">
+          <dt>Adresse de résidence</dt>
+          <dd>{{ client.address || 'Non renseignée' }}</dd>
+        </div>
+
+        <div class="detail-item">
+          <dt>Numéro CIN</dt>
+          <dd><code class="badge-code">{{ client.CIN || 'N/A' }}</code></dd>
+        </div>
+
+        <div class="detail-item">
+          <dt>Passeport</dt>
+          <dd>{{ client.passport || 'Aucun passeport enregistré' }}</dd>
+        </div>
+      </dl>
+    </div>
+  }
+</div>

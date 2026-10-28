@@ -1,0 +1,553 @@
+/* ============================================================
+   MODAL BACKDROP
+   ============================================================ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #E5E7EB;
+  animation: modalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+  gap: 1rem;
+}
+
+.modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex: 1;
+}
+
+.modal-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #E6F4F7;
+  color: #0E4C5C;
+  flex-shrink: 0;
+}
+
+.modal-icon-edit {
+  background: #FEF3C7;
+  color: #F59E0B;
+}
+
+.modal-icon mat-icon {
+  font-size: 22px;
+  height: 22px;
+  width: 22px;
+}
+
+.modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.modal-subtitle {
+  font-size: 0.78rem;
+  color: #6B7280;
+  margin: 0.15rem 0 0 0;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-close:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 2rem;
+  color: #0E4C5C;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #0E4C5C;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   FORM BODY
+   ============================================================ */
+.form-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.form-field-full {
+  grid-column: 1 / -1;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0E4C5C;
+  margin: 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.section-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #E6F4F7;
+  color: #0E4C5C;
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.optional {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #9CA3AF;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+
+/* ============================================================
+   GRILLES & CHAMPS
+   ============================================================ */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 520px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.req {
+  color: #EF4444;
+}
+
+/* ============================================================
+   INPUTS & SELECTS
+   ============================================================ */
+.input {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  background: #F9FAFB;
+  font-size: 0.88rem;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  width: 100%;  
+}
+
+select.input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  appearance: none;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.input:focus {
+  border-color: #4AACBC;
+  background: #FFFFFF; 
+}
+
+.input:disabled {
+  background: #F3F4F6;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.input-error {
+  border-color: #EF4444;
+  background: #FEF2F2;
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: #EF4444;
+  margin: 0;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: #6B7280;
+  margin: 0;
+}
+
+.field-hint.warning {
+  color: #D97706;
+}
+
+/* ============================================================
+   ALERTES
+   ============================================================ */
+.alert-error-sm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #B91C1C;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: #FEF2F2;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #FECACA;
+}
+
+.alert-error-sm mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+}
+
+.error-banner mat-icon {
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   FOOTER & BOUTONS
+   ============================================================ */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 1rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--danger);
+  background: var(--danger);
+  color: #FFFFFF;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-secondary:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary-500);   
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--primary-500);
+  cursor: pointer;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 10px rgba(14, 76, 92, 0.25);
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-primary:hover:not(:disabled) {
+   border-color: var(--primary-400, );
+  color: var(--primary-500, );
+  background: var(--primary-50, );
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+/* ✅ Carte d'information Véhicule (Capacité & Prix) */
+.vehicle-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #F0FDFA; /* Fond très clair tiré de ton thème */
+  border: 1px solid #A7F3D0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 0.5rem;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #0E7490;
+}
+
+.info-row mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.info-row strong {
+  font-weight: 800;
+  color: #0F172A;
+}/* ... (Vos styles existants pour .modal-backdrop, .modal-card, etc.) ... */
+
+/* ══════════════════════════════════════════════════════════
+   NOUVEAUX STYLES POUR LA TARIFICATION
+   ══════════════════════════════════════════════════════════ */
+
+.vehicle-info-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.vehicle-info-card .info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.vehicle-info-card .info-row mat-icon {
+  color: #0EA5E9;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Boutons radio */
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+
+.tarif-radios {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  padding: 8px 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.radio-item:has(input:checked) {
+  background: #E0F2FE;
+  border-color: #0EA5E9;
+  color: #0369A1;
+}
+
+.radio-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #F1F5F9;
+}
+
+.radio-item input {
+  accent-color: #0EA5E9;
+  cursor: pointer;
+}
+
+/* Bloc d'aperçu des prix */
+.price-preview {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Répartition Mixte */
+.mixte-split {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E2E8F0;
+}
+
+.mixte-split .field {
+  flex: 1;
+}
+
+.split-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.split-info small {
+  color: #94A3B8;
+  font-size: 0.7rem;
+}
+
+.vehicle-info-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F8FAFC;
+  border: 1px dashed #CBD5E1;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  color: #64748B;
+  font-size: 0.9rem;
+}
+
+.vehicle-info-placeholder mat-icon {
+  color: #94A3B8;
+}

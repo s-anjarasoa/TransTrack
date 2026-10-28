@@ -1,0 +1,135 @@
+<header class="topbar" [class.topbar-collapsed]="isSidebarCollapsed">
+
+  
+  <!-- Bouton menu (mobile) -->
+  <button
+    type="button"
+    class="menu-btn"
+    (click)="menuToggle.emit()"
+    aria-label="Ouvrir le menu"
+  >
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+  </button>
+
+  <div class="page-heading">
+    <h1 class="page-title">{{ currentPageTitle() }}</h1>
+    <span class="page-subtitle">
+      <mat-icon class="espace-icon" aria-hidden="true">
+        {{ espaceIcon() }}
+      </mat-icon>
+      <span>{{ espaceLabel() }}</span>
+    </span>
+  </div>
+
+  <!-- Espace flexible -->
+  <div class="topbar-spacer"></div>
+
+  <app-notification-bell/>
+  
+  <!-- Bloc utilisateur -->
+  <!-- Bloc utilisateur avec menu déroulant -->
+<div class="user-menu-wrapper">
+
+  <button
+    type="button"
+    class="user-block"
+    [class.user-block-open]="userMenuOpen()"
+    (click)="toggleUserMenu($event)"
+    [attr.aria-expanded]="userMenuOpen()"
+    aria-haspopup="menu"
+  >
+    <div class="user-info">
+      <span class="user-name">{{ fullName }}</span>
+      <span class="user-email">{{ email }}</span>
+    </div>
+
+    <div class="avatar" [style.background]="avatarGradient" [title]="fullName">
+      {{ initials }}
+    </div>
+
+    <!-- petite flèche -->
+    <mat-icon class="chevron" [class.chevron-open]="userMenuOpen()">
+      expand_more
+    </mat-icon>
+  </button>
+
+  <!-- Menu déroulant -->
+  @if (userMenuOpen()) {
+    <div class="user-dropdown" role="menu">
+
+      <!-- En-tête du menu -->
+      <div class="dropdown-header">
+        <div class="avatar avatar-lg" [style.background]="avatarGradient">
+          {{ initials }}
+        </div>
+        <div class="dropdown-header-info">
+          <span class="dropdown-name">{{ fullName }}</span>
+          <span class="dropdown-email">{{ email }}</span>
+          @if (agentTypeLabel()) {
+            <span class="dropdown-role">{{ agentTypeLabel() }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="dropdown-divider"></div>
+
+      <!-- Options -->
+      <a
+        routerLink="/profil"
+        class="dropdown-item"
+        role="menuitem"
+        (click)="closeUserMenu()"
+      >
+        <mat-icon>person</mat-icon>
+        <span>Mon profil</span>
+      </a>
+      <a
+        routerLink="/preferences"
+        class="dropdown-item"
+        role="menuitem"
+        (click)="closeUserMenu()"
+      >
+        <mat-icon>psychology</mat-icon>
+        <span>Mes préférences IA</span>
+      </a>
+
+      <a
+        routerLink="/parametres"
+        class="dropdown-item"
+        role="menuitem"
+        (click)="closeUserMenu()"
+      >
+        <mat-icon>settings</mat-icon>
+        <span>Paramètres</span>
+      </a>
+
+      <a
+        routerLink="/aide"
+        class="dropdown-item"
+        role="menuitem"
+        (click)="closeUserMenu()"
+      >
+        <mat-icon>help_outline</mat-icon>
+        <span>Aide &amp; Support</span>
+      </a>
+
+      <div class="dropdown-divider"></div>
+
+      <!-- Déconnexion -->
+      <button
+        type="button"
+        class="dropdown-item dropdown-item-danger"
+        role="menuitem"
+        (click)="logout()"
+      >
+        <mat-icon>logout</mat-icon>
+        <span>Déconnexion</span>
+      </button>
+    </div>
+  }
+</div>
+  
+
+</header>

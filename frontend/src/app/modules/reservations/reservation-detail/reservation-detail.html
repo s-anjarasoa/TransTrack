@@ -1,0 +1,277 @@
+<div class="page">
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de votre réservation...</p>
+    </div>
+  } @else if (!reservation()) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">search_off</mat-icon>
+      <h3>Réservation introuvable</h3>
+      <a routerLink="/reservations" class="btn-primary">Retour à mes réservations</a>
+    </div>
+  } @else {
+    <a routerLink="/reservations" class="back-link">
+      <mat-icon>arrow_back</mat-icon> Retour
+    </a>
+
+    <div class="detail-header">
+      <div class="header-main">
+        <div class="header-route">
+          <span class="city">{{ reservation()!.voyage?.route?.depart }}</span>
+          <mat-icon class="route-arrow">arrow_forward</mat-icon>
+          <span class="city">{{ reservation()!.voyage?.route?.arrivee }}</span>
+        </div>
+        <div class="header-meta">
+          <span class="meta-item"><mat-icon>tag</mat-icon> {{ reservation()!.codeReservation }}</span>
+          <span class="meta-item"><mat-icon>event</mat-icon> {{ reservation()!.voyage?.dateDepart | date:'dd MMM yyyy, HH:mm' }}</span>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-chip" [class]="statutMeta(reservation()!.statut).cls">
+          {{ statutMeta(reservation()!.statut).label }}
+        </span>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      
+      <!-- Colonne Gauche : Infos & Actions -->
+      <div class="left-col">
+        <div class="card">
+          <h3 class="card-title"><mat-icon>receipt_long</mat-icon> Détails</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Places</span>
+              <span class="info-value">{{ reservation()!.nombrePlaces }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Prix unitaire</span>
+              <span class="info-value">{{ formatAriary(reservation()!.prixTotal / reservation()!.nombrePlaces) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Total</span>
+              <span class="info-value total">{{ formatAriary(reservation()!.prixTotal) }}</span>
+            </div>
+            @if (isAgent) {
+              <div class="info-item">
+                <span class="info-label">Client</span>
+                <span class="info-value">{{ reservation()!.client?.user?.firstName }} {{ reservation()!.client?.user?.lastName }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (reservation()!.statut === ReservationStatut.CONFIRMEE) {
+          <div class="card action-card pay-card">
+            <div class="action-icon"><mat-icon>payment</mat-icon></div>
+            <div class="action-content">
+              <h3>En attente de paiement</h3>
+              <p>Votre réservation est confirmée. Réglez maintenant pour débloquer vos billets.</p>
+              <button type="button" class="btn-primary w-full" [disabled]="actionLoading()" (click)="payer()">
+                <mat-icon>credit_card</mat-icon> Payer {{ formatAriary(reservation()!.prixTotal) }}
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (isAgent && reservation()!.statut === ReservationStatut.EN_ATTENTE) {
+          <div class="card action-card">
+            <h3 class="card-title"><mat-icon>admin_panel_settings</mat-icon> Action Guichet</h3>
+            <p class="action-desc">En tant qu'agent, vous devez confirmer cette réservation pour générer les billets.</p>
+            <button type="button" class="btn-success w-full" [disabled]="actionLoading()" (click)="confirmer()">
+              <mat-icon>check_circle</mat-icon> Confirmer la réservation
+            </button>
+          </div>
+        }
+
+        @if (canCancel) {
+          <div class="card action-card">
+            <h3 class="card-title"><mat-icon>cancel</mat-icon> Annulation</h3>
+            @if (!showCancelForm()) {
+              <p class="action-desc">Un empêchement ? Vous pouvez annuler cette réservation.</p>
+              <button type="button" class="btn-outline-danger w-full" (click)="showCancelForm.set(true)">
+                Annuler la réservation
+              </button>
+            } @else {
+              <div class="cancel-form">
+                <label>Motif de l'annulation (optionnel)</label>
+                <textarea class="textarea" [ngModel]="motif()" (ngModelChange)="motif.set($event)" placeholder="Ex: Changement de programme..."></textarea>
+                <div class="action-row">
+                  <button type="button" class="btn-secondary" (click)="showCancelForm.set(false)">Retour</button>
+                  <button type="button" class="btn-danger" [disabled]="actionLoading()" (click)="annuler()">
+                    Confirmer l'annulation
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Colonne Droite : Billets & Bagages -->
+      <div class="right-col">
+        @if (billets().length > 0) {
+          <div class="tickets-section">
+            <h3 class="section-title"><mat-icon>confirmation_number</mat-icon> Vos Billets</h3>
+            
+            <!-- ✅ Message si non payé -->
+            @if (reservation()!.statut !== ReservationStatut.PAYEE && !isAgent) {
+              <div class="alert-info-lock">
+                <mat-icon>lock</mat-icon>
+                <span>Vos billets seront téléchargeables une fois le paiement effectué.</span>
+              </div>
+            }
+
+            <div class="tickets-list">
+              @for (b of billets(); track b.id) {
+                <div class="ticket">
+                  <div class="ticket-main">
+                    <div class="ticket-header">
+                      <span class="ticket-label">Billet Électronique</span>
+                      <span class="ticket-class">{{ b.categorie }}</span>
+                    </div>
+                    <div class="ticket-route">
+                      <div class="t-route">{{ reservation()!.voyage?.route?.depart }}</div>
+                      <mat-icon>arrow_forward</mat-icon>
+                      <div class="t-route">{{ reservation()!.voyage?.route?.arrivee }}</div>
+                    </div>
+                    <div class="ticket-details">
+                      <div><span>Passager</span><strong>{{ reservation()!.client?.user?.firstName }} {{ reservation()!.client?.user?.lastName }}</strong></div>
+                      <div><span>N° Billet</span><strong>{{ b.numeroBillet }}</strong></div>
+                      <div><span>Siège</span><strong>{{ b.numeroPlace || 'Non assigné' }}</strong></div>
+                    </div>
+                  </div>
+                  <div class="ticket-stub">
+                    <div class="qr-placeholder">
+                      <mat-icon>qr_code_2</mat-icon>
+                    </div>
+                    <div class="ticket-actions">
+                      @if (!isAgent) {
+                        <!-- ✅ CONDITION DE PAIEMENT ICI -->
+                        @if (reservation()!.statut === ReservationStatut.PAYEE) {
+                          <button type="button" class="btn-icon" (click)="imprimerBillet(b)" title="Télécharger / Imprimer">
+                            <mat-icon>download</mat-icon>
+                          </button>
+                        } @else {
+                          <button type="button" class="btn-icon locked" (click)="notifierPaiementRequis()" title="Disponible après paiement">
+                            <mat-icon>lock</mat-icon>
+                          </button>
+                        }
+                      }
+                      
+                      <button type="button" class="btn-icon" (click)="envoyerEmail(b)" title="Envoyer par email">
+                        <mat-icon>email</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- BAGAGES (Inchangé) -->
+        <div class="card">
+          <div class="card-header-flex">
+            <h3 class="card-title"><mat-icon>luggage</mat-icon> Bagages</h3>
+            @if (isAgent && !showBagageForm()) {
+              <button type="button" class="btn-secondary btn-sm" (click)="showBagageForm.set(true)">
+                <mat-icon>add</mat-icon> Ajouter
+              </button>
+            }
+          </div>
+
+          <div class="info-box" style="margin-bottom: 1rem; background: #F0F9FF; color: #0369A1; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+            <mat-icon style="font-size: 16px; width: 16px; height: 16px;">info</mat-icon>
+            Franchise : 6 kg / personne (Total autorisé gratuit : {{ allowedWeight }} kg).
+          </div>
+
+          @if (isAgent && showBagageForm()) {
+            <div class="bagage-form">
+              <div class="form-row">
+                <div class="field">
+                  <label>Type de bagage</label>
+                  <select [ngModel]="newBagage().type" (ngModelChange)="newBagage.update(b => ({...b, type: $event}))">
+                    @for (t of bagageOptions; track t) { <option [value]="t">{{ t }}</option> }
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Poids (kg)</label>
+                  <input type="number" min="1" [ngModel]="newBagage().poids" (ngModelChange)="newBagage.update(b => ({...b, poids: $event}))">
+                </div>
+              </div>
+              <div class="field">
+                <label>Description</label>
+                <input type="text" [ngModel]="newBagage().description" (ngModelChange)="newBagage.update(b => ({...b, description: $event}))" placeholder="Ex: Valise noire à roulettes">
+              </div>
+              <div class="action-row">
+                <button type="button" class="btn-secondary btn-sm" (click)="showBagageForm.set(false)">Annuler</button>
+                <button type="button" class="btn-primary btn-sm" [disabled]="bagageLoading()" (click)="ajouterBagage()">
+                  {{ bagageLoading() ? 'Ajout...' : 'Enregistrer' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (bagages().length === 0 && !showBagageForm()) {
+            <p class="empty-text">Aucun bagage enregistré.</p>
+          } @else {
+            <div class="bagage-list">
+              @for (bag of bagages(); track bag.id) {
+                <div class="bagage-item">
+                  <div class="bagage-icon"><mat-icon>work</mat-icon></div>
+                  <div class="bagage-info">
+                    <strong>{{ bag.type }} ({{ bag.poids }} kg)</strong>
+                    <span>Étiquette: {{ bag.numeroEtiquette }}</span>
+                  </div>
+                  <span class="bagage-price" [class.text-danger]="bag.supplementPrix > 0">
+                    {{ bag.supplementPrix > 0 ? '+' + formatAriary(bag.supplementPrix) : 'Gratuit' }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+@if (printableBillet(); as billet) {
+  <div class="print-ticket-container">
+    <div class="ticket-card">
+      <div class="t-logo">TransTrack</div>
+      <div class="t-header">Billet Électronique</div>
+      <div class="t-route">
+        {{ reservation()?.voyage?.route?.depart }} &rarr; {{ reservation()?.voyage?.route?.arrivee }}
+      </div>
+
+      <img [src]="qrCodeUrl()" class="t-qr" alt="QR Code" />
+
+      <div class="t-info-grid">
+        <div class="t-info-row">
+          <span class="t-label">Passager</span>
+          <span class="t-value">{{ reservation()?.client?.user?.firstName }} {{ reservation()?.client?.user?.lastName }}</span>
+        </div>
+        <div class="t-info-row">
+          <span class="t-label">N° Billet</span>
+          <span class="t-value">{{ billet.numeroBillet }}</span>
+        </div>
+        <div class="t-info-row">
+          <span class="t-label">Siège</span>
+          <span class="t-value">{{ billet.numeroPlace || 'Non assigné' }}</span>
+        </div>
+        <div class="t-info-row">
+          <span class="t-label">Départ</span>
+          <span class="t-value">{{ reservation()?.voyage?.dateDepart | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div class="t-footer">
+        Présentez ce QR Code à l'embarquement.<br>
+        Toute reproduction frauduleuse est punie par la loi.
+      </div>
+    </div>
+  </div>
+}

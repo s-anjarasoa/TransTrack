@@ -1,0 +1,261 @@
+<div class="page">
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1 class="page-title">Nos véhicules</h1>
+      <p class="page-subtitle">Gérez les véhicules rattachés à votre société</p>
+    </div>
+
+    <div class="page-header-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="refresh()"
+        [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+        <span>Actualiser</span>
+      </button>
+
+      @if (isAgent) {
+        <a routerLink="/vehicules/new" class="btn-primary">
+          <mat-icon>add</mat-icon>
+          <span>Ajouter un véhicule</span>
+        </a>
+      }
+    </div>
+  </div>
+
+   <!-- ============================================================
+       KPI CARDS 
+       ============================================================ -->
+  <div class="stat-strip">
+    <div class="stat-tile">
+      <div class="stat-icon-wrapper"><mat-icon>directions_car</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().total }}</span>
+        <span class="stat-lbl">Total véhicules</span>
+      </div>
+    </div>
+
+    <div class="stat-tile stat-tile-success">
+      <div class="stat-icon-wrapper"><mat-icon>check_circle</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().disponible }}</span>
+        <span class="stat-lbl">Disponibles</span>
+      </div>
+    </div>
+
+    <div class="stat-tile stat-tile-info">
+      <div class="stat-icon-wrapper"><mat-icon>commute</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().enService }}</span>
+        <span class="stat-lbl">En service</span>
+      </div>
+    </div>
+
+    <div class="stat-tile stat-tile-promo">
+      <div class="stat-icon-wrapper"><mat-icon>build</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().maintenance }}</span>
+        <span class="stat-lbl">En maintenance</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TOOLBAR
+       ============================================================ -->
+  <div class="toolbar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Rechercher par immatriculation, marque..."
+        [value]="searchTerm()"
+        (input)="onSearch($event)"
+      />
+      @if (searchTerm()) {
+        <button type="button" class="search-clear" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+
+    <div class="chip-row">
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === ''"
+        (click)="setFilter('')">
+        Tous
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === VehiculeStatut.DISPONIBLE"
+        (click)="setFilter(VehiculeStatut.DISPONIBLE)">
+        Disponibles
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === VehiculeStatut.EN_SERVICE"
+        (click)="setFilter(VehiculeStatut.EN_SERVICE)">
+        En service
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === VehiculeStatut.EN_MAINTENANCE"
+        (click)="setFilter(VehiculeStatut.EN_MAINTENANCE)">
+        Maintenance
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === VehiculeStatut.HORS_SERVICE"
+        (click)="setFilter(VehiculeStatut.HORS_SERVICE)">
+        Hors service
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       GRILLE DE VÉHICULES
+       ============================================================ -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de la flotte...</p>
+    </div>
+  } @else if (vehicules().length > 0) {
+    <div class="card-grid">
+      @for (v of pagedVehicules(); track v.id) {
+        <div class="vehicle-card">
+
+          <!-- Top : plaque + statut -->
+          <div class="vehicle-card-top">
+            <div class="plate">{{ v.immatriculation }}</div>
+            <span class="status-chip" [class]="statutMeta(v.statut).cls">
+              <span class="status-dot" [class]="statutMeta(v.statut).dot"></span>
+              {{ statutMeta(v.statut).label }}
+            </span>
+          </div>
+
+          <!-- Nom du véhicule -->
+          <h3 class="vehicle-name">{{ v.marque }} {{ v.modele }}</h3>
+          <p class="vehicle-sub">
+            {{ v.moyenTrans?.nom || '—' }}
+            @if (v.annee) {
+              <span class="sub-sep">·</span>
+              <span>{{ v.annee }}</span>
+            }
+          </p>
+
+          <div class="vehicle-meta">
+  <div class="meta-item">
+    <mat-icon>airline_seat_recline_normal</mat-icon>
+    <span>{{ v.capacite }} places</span>
+  </div>
+  @if (v.couleur) {
+    <div class="meta-item">
+      <span
+        class="color-dot"
+        [style.background]="getCouleurHex(v.couleur) || '#D1D5DB'"
+        [class.color-dot-light]="isCouleurClaire(v.couleur)"
+      ></span>
+      <span class="color-label">{{ v.couleur }}</span>
+    </div>
+  }
+</div>
+ 
+          <!-- Actions -->
+          @if (isAgent) {
+            <div class="vehicle-actions">
+              <select
+                class="statut-select"
+                [ngModel]="v.statut"
+                (ngModelChange)="onStatutSelect(v, $event)"
+                [disabled]="actionLoadingId() === v.id"
+                (click)="$event.stopPropagation()">
+                <option [value]="VehiculeStatut.DISPONIBLE">Disponible</option>
+                <option [value]="VehiculeStatut.EN_SERVICE">En service</option>
+                <option [value]="VehiculeStatut.EN_MAINTENANCE">Maintenance</option>
+                <option [value]="VehiculeStatut.HORS_SERVICE">Hors service</option>
+              </select>
+
+              <a
+                [routerLink]="['/vehicules', v.id, 'edit']"
+                class="btn-icon btn-icon-edit"
+                (click)="$event.stopPropagation()"
+                title="Modifier">
+                <mat-icon>edit</mat-icon>
+              </a>
+
+              <button
+                type="button"
+                class="btn-icon btn-icon-danger"
+                [disabled]="actionLoadingId() === v.id"
+                (click)="remove(v, $event)"
+                title="Supprimer">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ============================================================
+         PAGINATION
+         ============================================================ -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button
+          type="button"
+          class="page-nav-btn"
+          [disabled]="currentPage() === 1"
+          (click)="previousPage()"
+          aria-label="Page précédente">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <span class="page-indicator">
+          Page <strong>{{ currentPage() }}</strong> sur <strong>{{ totalPages() }}</strong>
+        </span>
+
+        <button
+          type="button"
+          class="page-nav-btn"
+          [disabled]="currentPage() === totalPages()"
+          (click)="nextPage()"
+          aria-label="Page suivante">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+
+        <span class="page-range">{{ rangeText() }}</span>
+      </div>
+    }
+  } @else {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">directions_car</mat-icon>
+      <h3>Aucun véhicule trouvé</h3>
+      <p>
+        @if (hasActiveFilters()) {
+          Essayez de modifier vos filtres.
+        } @else {
+          Ajoutez un nouveau véhicule pour commencer.
+        }
+      </p>
+      @if (hasActiveFilters()) {
+        <button class="btn-secondary" (click)="resetFilters()">
+          Réinitialiser les filtres
+        </button>
+      }
+    </div>
+  }
+</div>

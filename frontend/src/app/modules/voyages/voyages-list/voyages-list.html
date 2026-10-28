@@ -1,0 +1,175 @@
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1 class="page-title">Planning des voyages</h1>
+      <p class="page-subtitle">Gérez les départs et arrivées de votre flotte</p>
+    </div>
+    <div class="page-header-actions">
+      @if (isAgent) {
+        <a routerLink="/voyages/new" class="btn-primary">
+          <mat-icon>add</mat-icon>
+          <span>Planifier un voyage</span>
+        </a>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+  } @else {
+    
+    <!-- KPI -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon"><mat-icon>event</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats().total }}</span>
+          <span class="stat-label">Voyages</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-success"><mat-icon>schedule</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-value stat-value-success">{{ stats().planifies }}</span>
+          <span class="stat-label">Planifiés</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-warning"><mat-icon>directions_bus</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-value stat-value-inactive">{{ stats().enCours }}</span>
+          <span class="stat-label">En cours</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-primary"><mat-icon>check_circle</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-value stat-value-primary">{{ stats().termines }}</span>
+          <span class="stat-label">Terminés</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" class="search-input" placeholder="Rechercher un code, une ville..." [value]="searchTerm()" (input)="onSearch($event)">
+        @if (searchTerm()) {
+          <button type="button" class="search-clear" (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+
+      <div class="chip-row">
+        <button type="button" class="filter-chip" [class.filter-chip-active]="statutFilter() === ''" (click)="setFilter('')">Tous</button>
+        <button type="button" class="filter-chip" [class.filter-chip-active]="statutFilter() === VoyageStatut.PLANIFIE" (click)="setFilter(VoyageStatut.PLANIFIE)">Planifiés</button>
+        <button type="button" class="filter-chip" [class.filter-chip-active]="statutFilter() === VoyageStatut.EN_COURS" (click)="setFilter(VoyageStatut.EN_COURS)">En cours</button>
+        <button type="button" class="filter-chip" [class.filter-chip-active]="statutFilter() === VoyageStatut.TERMINE" (click)="setFilter(VoyageStatut.TERMINE)">Terminés</button>
+      </div>
+    </div>
+
+    <!-- ✅ FILTRE DATE (Réintégré) -->
+    <div class="date-filter">
+      <div class="date-filter-label">
+        <mat-icon>calendar_today</mat-icon>
+        <span>Date de départ</span>
+      </div>
+
+      <div class="date-filter-inputs">
+        <div class="date-field">
+          <label for="dateDebut">Du</label>
+          <input id="dateDebut" type="date" class="date-input" [value]="dateDebut()" (input)="setDateDebut($event)">
+        </div>
+
+        <div class="date-field">
+          <label for="dateFin">Au</label>
+          <input id="dateFin" type="date" class="date-input" [value]="dateFin()" (input)="setDateFin($event)">
+        </div>
+
+        @if (dateDebut() || dateFin()) {
+          <button type="button" class="date-clear" (click)="clearDates()" title="Effacer les dates">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- LISTE -->
+    @if (voyages().length > 0) {
+      <div class="voyage-list">
+        @for (v of voyages(); track v.id) {
+          <div class="voyage-card" [routerLink]="['/voyages', v.id]">
+            
+            <div class="route-path">
+              <div class="path-point">
+                <span class="path-time">{{ v.dateDepart | date:'HH:mm' }}</span>
+                <div class="path-info">
+                  <span class="path-label">{{ v.dateDepart | date:'dd MMM' }}</span>
+                  <span class="path-city">{{ v.route?.depart }}</span>
+                </div>
+              </div>
+
+              <div class="path-line">
+                <div class="path-track">
+                  <mat-icon class="path-icon">arrow_forward</mat-icon>
+                </div>
+              </div>
+
+              <div class="path-point">
+                <span class="path-time">{{ v.dateArrivee | date:'HH:mm' }}</span>
+                <div class="path-info">
+                  <span class="path-label">{{ v.dateArrivee | date:'dd MMM' }}</span>
+                  <span class="path-city">{{ v.route?.arrivee }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="route-meta">
+              <span class="meta-chip meta-chip-code">{{ v.codeVoyage }}</span>
+              <span class="meta-chip"><mat-icon>directions_bus</mat-icon> {{ v.vehicule?.immatriculation || 'N/A' }}</span>
+              <span class="meta-chip"><mat-icon>event_seat</mat-icon> {{ v.placesDisponibles }} places</span>
+              <span class="meta-chip meta-chip-price">{{ v.prix | number }} Ar</span>
+            </div>
+
+            <div class="route-actions-row">
+              <span [class]="'status-chip ' + getStatutMeta(v.statut).cls">
+                <span [class]="'status-dot ' + getStatutMeta(v.statut).dot"></span>
+                {{ getStatutMeta(v.statut).label }}
+              </span>
+
+              <div class="route-buttons">
+                <a [routerLink]="['/voyages', v.id]" class="btn-icon btn-icon-view" matTooltip="Voir le détail" (click)="$event.stopPropagation()">
+                  <mat-icon>visibility</mat-icon>
+                </a>
+                @if (isAgent) {
+                  <a [routerLink]="['/voyages', v.id, 'edit']" class="btn-icon btn-icon-edit" matTooltip="Modifier" (click)="$event.stopPropagation()">
+                    <mat-icon>edit</mat-icon>
+                  </a>
+                  <button type="button" class="btn-icon btn-icon-danger" matTooltip="Supprimer" (click)="$event.stopPropagation()">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">event_busy</mat-icon>
+        <h3>Aucun voyage trouvé</h3>
+        <p>Modifiez vos filtres ou créez un nouveau voyage.</p>
+        @if (dateDebut() || dateFin() || searchTerm() || statutFilter()) {
+          <button class="btn-secondary" (click)="clearDates(); clearSearch(); setFilter('')">
+            Réinitialiser les filtres
+          </button>
+        }
+      </div>
+    }
+  }
+</div>

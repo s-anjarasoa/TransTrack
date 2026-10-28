@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@import 'leaflet/dist/leaflet.css';
+@use "material-theme";
+@use "theme/snackbar";
+
+/* Conteneur racine de la carte */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+/* Panes internes */
+.leaflet-pane          { z-index: 1 !important; }
+.leaflet-tile-pane     { z-index: 1 !important; }
+.leaflet-overlay-pane  { z-index: 2 !important; }
+.leaflet-shadow-pane   { z-index: 3 !important; }
+.leaflet-marker-pane   { z-index: 4 !important; }
+.leaflet-tooltip-pane  { z-index: 5 !important; }
+.leaflet-popup-pane    { z-index: 6 !important; }
+
+/* Contrôles (zoom, attribution) */
+.leaflet-control       { z-index: 7 !important; }
+.leaflet-top,
+.leaflet-bottom        { z-index: 7 !important; }
+/* ═══════════════════════════════════════════════════════════
+   Material au-dessus de tout
+   ═══════════════════════════════════════════════════════════ */
+.cdk-overlay-container {
+  z-index: 1000 !important;
+}
+
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-dialog-container,
+.mat-mdc-snack-bar-container,
+.mat-mdc-tooltip {
+  z-index: 1001 !important;
+}

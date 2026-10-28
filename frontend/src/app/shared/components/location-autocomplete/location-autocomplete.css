@@ -1,0 +1,58 @@
+:host { display: block; width: 100%; }
+.full-width { width: 100%; }
+
+.prefix-icon {
+  color: #0E7490;
+  margin-right: 8px;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.option-icon {
+  color: #0E7490;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.option-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.option-name {
+  font-weight: 500;
+  color: #111827;
+  font-size: 0.875rem;
+}
+
+.option-meta {
+  font-size: 0.72rem;
+  color: #6B7280;
+}
+
+.loading-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #6B7280;
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(14, 76, 92, 0.2);
+  border-top-color: #0E7490;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

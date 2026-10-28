@@ -1,0 +1,199 @@
+<div class="page">
+  <div class="pay-card">
+
+    <div class="sim-banner">
+      <mat-icon>science</mat-icon>
+      <span><strong>Mode simulation</strong> : aucun argent réel n'est débité.</span>
+    </div>
+
+    @if (loading()) {
+      <div class="state">
+        <div class="spinner"></div>
+        <p>Chargement du paiement…</p>
+      </div>
+    } @else if (!payment()) {
+      <div class="state">
+        <mat-icon class="state-icon state-icon-danger">error_outline</mat-icon>
+        <h2>Paiement introuvable</h2>
+        <p>{{ errorMessage() }}</p>
+        <button type="button" class="btn-primary" (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Retour</span>
+        </button>
+      </div>
+    } @else {
+
+      <!-- ===== Récapitulatif ===== -->
+      <div class="summary">
+        <p class="summary-label">Montant à payer</p>
+        <p class="summary-amount">{{ formatAmount(payment()!.amount) }}</p>
+        @if (payment()!.description) {
+          <p class="summary-desc">{{ payment()!.description }}</p>
+        }
+        <p class="summary-ref">Référence : <code>{{ payment()!.reference }}</code></p>
+      </div>
+
+      <!-- ✅ NOUVEAU : CARTE DE CONTEXTE -->
+      @if (payment()!.context; as ctx) {
+        <div class="context-card">
+          <div class="context-header">
+            <mat-icon>{{ getReasonIcon(ctx.reason) }}</mat-icon>
+            <span>{{ getReasonLabel(ctx.reason) }}</span>
+          </div>
+          
+          <div class="context-object">
+            {{ ctx.objectName }}
+            @if (ctx.objectId) {
+              <span class="context-id">#{{ ctx.objectId }}</span>
+            }
+          </div>
+
+          <div class="context-grid">
+            <!-- Expéditeur -->
+            <div class="context-party">
+              <span class="party-label">Expéditeur</span>
+              <span class="party-name">{{ ctx.senderName }}</span>
+              @if (ctx.senderPhone) {
+                <span class="party-phone">{{ ctx.senderPhone }}</span>
+              }
+            </div>
+
+            <!-- Flèche de transfert -->
+            <div class="context-arrow">
+              <mat-icon>arrow_forward</mat-icon>
+            </div>
+
+            <!-- Destinataire -->
+            <div class="context-party party-right">
+              <span class="party-label">Destinataire</span>
+              <span class="party-name">{{ ctx.receiverName }}</span>
+              @if (ctx.receiverPhone) {
+                <span class="party-phone">{{ ctx.receiverPhone }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ===== EN ATTENTE ===== -->
+      @if (isPending()) {
+        <div class="timer" [class.timer-warning]="remainingSeconds() < 120">
+          <mat-icon>timer</mat-icon>
+          <span>Cette page de paiement expire dans <strong>{{ formattedTime }}</strong></span>
+        </div>
+
+        <h3 class="section-title">Moyen de paiement</h3>
+        <div class="methods">
+          @for (m of methods; track m.value) {
+            <button
+              type="button"
+              class="method"
+              [class.method-active]="method() === m.value"
+              (click)="selectMethod(m.value)"
+              [disabled]="processing()"
+            >
+              <mat-icon>{{ m.icon }}</mat-icon>
+              <span>{{ m.label }}</span>
+            </button>
+          }
+        </div>
+
+        @if (needsPhone()) {
+          <div class="field">
+            <label for="sim-phone">Numéro de téléphone</label>
+            <input
+              id="sim-phone"
+              type="tel"
+              class="input"
+              placeholder="+261340000001"
+              autocomplete="off"
+              [value]="phone()"
+              (input)="onPhoneInput($event)"
+              [disabled]="processing()"
+            />
+            <p class="hint">Simulation : tout numéro valide est accepté.</p>
+          </div>
+        } @else {
+          <p class="hint hint-card">Simulation : aucune carte réelle n'est demandée.</p>
+        }
+
+        @if (errorMessage()) {
+          <div class="alert-error">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <div class="actions">
+          <button type="button" class="btn-primary btn-block" (click)="pay('SUCCES')" [disabled]="processing()">
+            @if (processing()) {
+              <span class="btn-spinner"></span>
+              <span>Traitement…</span>
+            } @else {
+              <mat-icon>lock</mat-icon>
+              <span>Payer {{ formatAmount(payment()!.amount) }}</span>
+            }
+          </button>
+
+          <div class="actions-secondary">
+            <button type="button" class="btn-outline btn-outline-danger" (click)="pay('ECHEC')" [disabled]="processing()">
+              Simuler un échec
+            </button>
+            <button type="button" class="btn-outline" (click)="pay('ANNULATION')" [disabled]="processing()">
+              Annuler
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ===== RÉSULTATS ===== -->
+      @if (payment()!.status === 'VALIDE') {
+        <div class="state">
+          <mat-icon class="state-icon state-icon-success">check_circle</mat-icon>
+          <h2>Paiement réussi</h2>
+          <p>Votre paiement a bien été enregistré.</p>
+          <button type="button" class="btn-primary" (click)="goBack()">
+            <span>Continuer</span>
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      }
+
+      @if (payment()!.status === 'ECHOUE') {
+        <div class="state">
+          <mat-icon class="state-icon state-icon-danger">cancel</mat-icon>
+          <h2>Paiement échoué</h2>
+          <p>Le paiement n'a pas abouti. Vous pouvez réessayer depuis la page précédente.</p>
+          <button type="button" class="btn-primary" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Retour</span>
+          </button>
+        </div>
+      }
+
+      @if (payment()!.status === 'ANNULE') {
+        <div class="state">
+          <mat-icon class="state-icon state-icon-muted">remove_circle_outline</mat-icon>
+          <h2>Paiement annulé</h2>
+          <p>Aucun montant n'a été débité.</p>
+          <button type="button" class="btn-primary" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Retour</span>
+          </button>
+        </div>
+      }
+
+      @if (payment()!.status === 'EXPIRE') {
+        <div class="state">
+          <mat-icon class="state-icon state-icon-muted">timer_off</mat-icon>
+          <h2>Paiement expiré</h2>
+          <p>Le délai est dépassé. Recommencez depuis la page précédente.</p>
+          <button type="button" class="btn-primary" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Retour</span>
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,123 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Voyages disponibles</h1>
+    <p class="page-subtitle">Trouvez votre prochain trajet et réservez vos places.</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon> 
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <div class="search-container">
+    <div class="search-bar">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        [value]="searchTerm()" 
+        (input)="onSearchInput($event)" 
+        placeholder="Rechercher par ville, société..." 
+        autocomplete="off"
+      />
+      @if (searchTerm()) {
+        <button type="button" class="clear-btn" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+
+    <div class="filter-chips">
+      @for (f of filters; track f.value) {
+        <button type="button" class="chip" [class.active]="activeFilter() === f.value" (click)="setFilter(f.value)">
+          <mat-icon>{{ f.icon }}</mat-icon> {{ f.label }}
+        </button>
+      }
+    </div>
+
+    <div class="date-filters-row">
+      <div class="date-input-wrapper">
+        <mat-icon>calendar_today</mat-icon>
+        <div class="date-text">
+          <span class="date-label">À partir du</span>
+          <input type="date" [value]="dateFrom()" (change)="onDateChange('from', $event)" />
+        </div>
+      </div>
+      
+      <div class="date-input-wrapper">
+        <mat-icon>event</mat-icon>
+        <div class="date-text">
+          <span class="date-label">Jusqu'au</span>
+          <input type="date" [value]="dateTo()" (change)="onDateChange('to', $event)" />
+        </div>
+      </div>
+
+      @if (searchTerm() || dateFrom() || dateTo()) {
+        <button type="button" class="btn-reset" (click)="resetFilters()">
+          <mat-icon>refresh</mat-icon> Réinitialiser
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des voyages...</p>
+    </div>
+  } @else {
+    @if (results().length > 0) {
+      <div class="result-list">
+        @for (v of results(); track v.id; let i = $index) {
+          <div class="result-card">
+            <div class="result-main">
+              <div class="result-route">
+                <span class="route-city">{{ v.route?.depart }}</span>
+                <mat-icon class="route-icon">arrow_forward</mat-icon>
+                <span class="route-city">{{ v.route?.arrivee }}</span>
+                
+                <!-- ✅ BADGE IA -->
+                @if (v.iaScore && v.iaScore > 0.7) {
+                  <span class="ia-badge">
+                    <mat-icon>auto_awesome</mat-icon> Recommandé
+                  </span>
+                }
+              </div>
+              
+              <div class="result-meta">
+                <span class="meta-item">
+                  <mat-icon>schedule</mat-icon> {{ formatDate(v.dateDepart) }}
+                </span>
+                <span class="meta-item">
+                  <mat-icon>event_seat</mat-icon> {{ v.placesDisponibles }} place(s) dispo
+                </span>
+                <span class="meta-item company-tag">
+                  <mat-icon>business</mat-icon> {{ v.societe?.nom || 'TransTrack' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="result-book">
+              <div class="result-price">
+                Dès {{ formatAriary(v.prix) }}
+              </div>
+
+              <!-- ✅ On passe l'index à la méthode -->
+              <button type="button" class="btn-reserve" (click)="goToReservation(v, i)">
+                <span>Choisir</span>
+                <mat-icon style="font-size: 18px; width: 18px; height: 18px;">arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (searched()) {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">search_off</mat-icon>
+        <h3>Aucun voyage trouvé</h3>
+        <p>Essayez de modifier vos critères de recherche.</p>
+      </div>
+    }
+  }
+</div>

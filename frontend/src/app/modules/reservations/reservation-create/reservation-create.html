@@ -1,0 +1,180 @@
+<div class="page">
+  <div class="header">
+    <button class="btn-back" (click)="cancel()">
+      <mat-icon>arrow_back</mat-icon> Retour à la recherche
+    </button>
+    <h1 class="page-title">Finaliser votre réservation</h1>
+    <p class="page-subtitle">Sélectionnez vos options et choisissez vos sièges.</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (voyage(); as v) {
+    <div class="layout-grid">
+      
+      <!-- ═══ PANNEAU GAUCHE : RÉCAPITULATIF DU VOYAGE ═══ -->
+      <div class="trip-column">
+        <div class="trip-card">
+          <div class="company-header">
+            <div class="company-logo">
+              <mat-icon>directions_bus</mat-icon>
+            </div>
+            <span class="company-name">{{ v.societe?.nom || 'TransTrack' }}</span>
+          </div>
+
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="time">{{ v.dateDepart | date:'HH:mm' }}</div>
+              <div class="dot start"></div>
+              <div class="location">
+                <span class="city">{{ v.route?.depart }}</span>
+                <span class="date">{{ v.dateDepart | date:'dd MMM yyyy' }}</span>
+              </div>
+            </div>
+            
+            <div class="timeline-line">
+              <span class="duration">Trajet direct</span>
+            </div>
+
+            <div class="timeline-item">
+              <div class="time">{{ v.dateArrivee | date:'HH:mm' }}</div>
+              <div class="dot end"></div>
+              <div class="location">
+                <span class="city">{{ v.route?.arrivee }}</span>
+                <span class="date">{{ v.dateArrivee | date:'dd MMM yyyy' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PANNEAU DROIT : OPTIONS & SIÈGES ═══ -->
+      <div class="options-column">
+        
+        <!-- 1. Catégorie -->
+        @if (!isBus) {
+          <div class="card section-card">
+            <h3 class="section-title">1. Choisissez votre classe</h3>
+            <div class="category-grid">
+              <button 
+                type="button" 
+                class="category-btn" 
+                [class.active]="categorie() === 'ECONOMIE'"
+                (click)="setCategorie('ECONOMIE')"
+                [disabled]="(v.placesEconomieDisponibles ?? 0) < 1"
+              >
+                <mat-icon class="cat-icon">airline_seat_recline_normal</mat-icon>
+                <div class="cat-info">
+                  <span class="cat-name">Économie</span>
+                  <span class="cat-price">{{ formatAriary(v.prixEconomie || 0) }}</span>
+                </div>
+                <span class="cat-status" [class.full]="(v.placesEconomieDisponibles ?? 0) < 1">
+                  {{ v.placesEconomieDisponibles }} places
+                </span>
+              </button>
+
+              <button 
+                type="button" 
+                class="category-btn" 
+                [class.active]="categorie() === 'CLASSE'"
+                (click)="setCategorie('CLASSE')"
+                [disabled]="(v.placesClasseDisponibles ?? 0) < 1"
+              >
+                <mat-icon class="cat-icon">star</mat-icon>
+                <div class="cat-info">
+                  <span class="cat-name">Classe</span>
+                  <span class="cat-price">{{ formatAriary(v.prixClasse || 0) }}</span>
+                </div>
+                <span class="cat-status" [class.full]="(v.placesClasseDisponibles ?? 0) < 1">
+                  {{ v.placesClasseDisponibles }} places
+                </span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- 2. Nombre de places -->
+        <div class="card section-card">
+          <h3 class="section-title">2. Combien de places ?</h3>
+          <div class="counter-wrapper">
+            <button type="button" class="counter-btn" (click)="decrementPlaces()" [disabled]="nombrePlaces() <= 1">
+              <mat-icon>remove</mat-icon>
+            </button>
+            <span class="counter-value">{{ nombrePlaces() }}</span>
+            <button type="button" class="counter-btn" (click)="incrementPlaces()" [disabled]="nombrePlaces() >= capaciteMax()">
+              <mat-icon>add</mat-icon>
+            </button>
+            <span class="counter-hint">sur {{ capaciteMax() }} disponibles</span>
+          </div>
+        </div>
+
+        <!-- 3. Choix des sièges (Plan de bus) -->
+        <div class="card section-card seat-section">
+          <div class="seat-header">
+            <h3 class="section-title">3. Sélectionnez vos sièges</h3>
+            <span class="seat-counter">{{ siegesSelectionnes().length }}/{{ nombrePlaces() }}</span>
+          </div>
+          
+          <div class="bus-layout">
+            <!-- Légende -->
+            <div class="legend">
+              <div class="legend-item"><span class="seat-sample available"></span> Libre</div>
+              <div class="legend-item"><span class="seat-sample selected"></span> Sélectionné</div>
+            </div>
+
+            <!-- Plan du bus -->
+            <div class="bus-interior">
+              <div class="driver-area">
+                <mat-icon class="steering-wheel">trip_origin</mat-icon>
+                <span>Chauffeur</span>
+              </div>
+              
+              <div class="seats-grid">
+                @for (seat of siegesDisponibles(); track seat) {
+                  <!-- On ajoute un peu d'espace après chaque paire de sièges pour simuler le couloir -->
+                  <div class="seat-wrapper" [class.aisle]="$index % 2 === 1">
+                    <button 
+                      type="button" 
+                      class="seat-btn"
+                      [class.selected]="siegesSelectionnes().includes(seat)"
+                      (click)="toggleSiege(seat)"
+                    >
+                      {{ seat }}
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Total et Confirmation -->
+        <div class="checkout-card">
+          <div class="total-row">
+            <span class="total-label">Total à payer</span>
+            <span class="total-price">{{ formatAriary(prixTotal) }}</span>
+          </div>
+          <button 
+            type="button" 
+            class="btn-submit" 
+            (click)="submit()" 
+            [disabled]="loading() || (!isBus && !categorie()) || siegesSelectionnes().length !== nombrePlaces()"
+          >
+            @if (loading()) {
+              <span class="spinner-small"></span>
+              <span>Traitement...</span>
+            } @else {
+              <span>Confirmer et payer</span>
+              <mat-icon>arrow_forward</mat-icon>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,304 @@
+<div class="dash">
+
+  <!-- HEADER -->
+  <div class="dash-header">
+    <div class="welcome-text">
+      <h1 class="dash-title">
+        Bonjour, <span class="text-gradient">{{ firstName }}</span>
+      </h1>
+      <div class="header-subtitle">
+        @if (maSociete()) {
+          <span class="company-name">
+            <mat-icon>business</mat-icon> {{ maSociete()?.name }}
+          </span>
+        }
+        @if (agentProfile()?.type) {
+          <span class="role-badge role-badge-agent">
+            {{ agentProfile()?.type | agentTypeLabel }}
+          </span>
+        }
+        <span class="header-date">
+          <mat-icon>calendar_today</mat-icon> {{ today | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  @if (!agentProfile()?.societeId) {
+    <!-- Gestion des erreurs (vide pour l'instant, géré par le layout global) -->
+  } @else {
+
+    <!-- ============================================================
+         DIRECTEUR
+         ============================================================ -->
+    @if (isDirecteur) {
+      <!-- KPI (CA retiré) -->
+      <div class="metric-grid">
+        <div class="metric-card card-teal">
+          <div class="metric-icon-box"><mat-icon>group</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ equipe().length }}</span><span class="metric-label">Total Agents</span></div>
+        </div>
+        <div class="metric-card card-cyan">
+          <div class="metric-icon-box"><mat-icon>directions_bus</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ voyages().length }}</span><span class="metric-label">Voyages</span></div>
+        </div>
+        <div class="metric-card card-indigo">
+          <div class="metric-icon-box"><mat-icon>directions_car</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ vehicules().length }}</span><span class="metric-label">Véhicules</span></div>
+        </div>
+        <div class="metric-card card-amber">
+          <div class="metric-icon-box"><mat-icon>check_circle</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ reservations().length }}</span><span class="metric-label">Réservations</span></div>
+        </div>
+        <div class="metric-card card-rose">
+          <div class="metric-icon-box"><mat-icon>map</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ routesCount() }}</span><span class="metric-label">Itinéraires</span></div>
+        </div>
+      </div>
+
+      <!-- Chart 1 & Side Column (CA + Action Center + Abonnement) -->
+      <div class="row-grid">
+        <div class="detail-card chart-flex-card">
+          <div class="card-header"><div class="card-title"><mat-icon>bar_chart</mat-icon><span>Voyages par statut</span></div></div>
+          <app-bar-chart [items]="voyagesChart()" />
+        </div>
+        
+        <div class="side-column">
+          
+          <!-- ✅ ACTION CENTER (À traiter) -->
+          <div class="action-card">
+            <div class="action-header">
+              <div class="action-title">
+                <mat-icon class="pulse-icon">notifications_active</mat-icon>
+                <span>À traiter</span>
+              </div>
+              <span class="action-badge">{{ agentsEnAttente() }}</span>
+            </div>
+            <div class="action-list">
+              @if (agentsEnAttente() > 0) {
+                <a routerLink="/agents" class="action-item">
+                  <div class="action-item-left">
+                    <div class="action-icon bg-amber"><mat-icon>person_add</mat-icon></div>
+                    <div>
+                      <span class="action-item-title">Agents en attente</span>
+                      <span class="action-item-desc">Valider les inscriptions</span>
+                    </div>
+                  </div>
+                  <span class="action-count">{{ agentsEnAttente() }}</span>
+                </a>
+              } @else {
+                <div class="action-empty">
+                  <mat-icon>check_circle</mat-icon>
+                  <p>Tout est à jour !</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- ✅ CA DU MOIS (Hors KPI) -->
+          <div class="detail-card" style="background: #F0FDF4; border-color: #BBF7D0;">
+            <div class="card-header" style="border-bottom: none; margin-bottom: 0.5rem;">
+              <div class="card-title" style="color: #166534;"><mat-icon style="color: #166534;">payments</mat-icon><span>Chiffre d'affaires (Mois)</span></div>
+            </div>
+            <div style="font-size: 2rem; font-weight: 800; color: #166534; padding: 0.5rem 0;">
+              {{ recettesDuMois() | number:'1.0-0' }} Ar
+            </div>
+          </div>
+
+          <!-- Abonnement -->
+          @if (monAbonnement()) {
+            <div class="detail-card" [class.card-expiring]="isExpiringSoon()">
+              <div class="card-header">
+                <div class="card-title"><mat-icon>workspace_premium</mat-icon><span>Abonnement</span></div>
+                @if (isExpiringSoon()) { <span class="badge-expiring">Expire bientôt</span> }
+                @else if (monAbonnement()?.isActif) { <span class="status-chip chip-success">Actif</span> }
+              </div>
+              <dl class="info-grid">
+                <div class="info-row"><dt>Formule</dt><dd>{{ monAbonnement()?.type }}</dd></div>
+                @if (monAbonnement()?.dateFin) {
+                  <div class="info-row"><dt>Expiration</dt><dd [style.color]="isExpiringSoon() ? '#D97706' : '#0F172A'">{{ monAbonnement()?.dateFin | date: 'dd/MM/yyyy' }}</dd></div>
+                }
+              </dl>
+              <a routerLink="/abonnements" class="btn-outline-cyan w-full mt-2"><mat-icon>settings</mat-icon> Gérer</a>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Chart 2 & Chart 3 -->
+      <div class="row-grid">
+        <div class="detail-card">
+          <div class="card-header"><div class="card-title"><mat-icon>directions_car</mat-icon><span>Véhicules</span></div></div>
+          <app-pie-chart [items]="vehiculesPieChart()" />
+        </div>
+        <div class="detail-card">
+          <div class="card-header"><div class="card-title"><mat-icon>group</mat-icon><span>Mon Équipe</span></div><a routerLink="/agents" class="card-link">Gérer</a></div>
+          <app-progress-list [items]="equipeProgressChart()" />
+        </div>
+      </div>
+    }
+
+    <!-- ============================================================
+         CHAUFFEUR
+         ============================================================ -->
+    @if (isChauffeur) {
+      <div class="metric-grid">
+        <a routerLink="/voyages" class="metric-card card-cyan">
+          <div class="metric-icon-box"><mat-icon>schedule</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ voyagesStats().planifies }}</span><span class="metric-label">Voyages à venir</span></div>
+        </a>
+        <div class="metric-card card-emerald">
+          <div class="metric-icon-box"><mat-icon>confirmation_number</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ reservations().length }}</span><span class="metric-label">Réservations (Mes voyages)</span></div>
+        </div>
+      </div>
+
+      <div class="row-grid">
+        <div class="detail-card">
+          <div class="card-header"><div class="card-title"><mat-icon>bar_chart</mat-icon><span>Mes Voyages</span></div></div>
+          <app-bar-chart [items]="voyagesChart()" />
+        </div>
+        <div class="detail-card">
+          <div class="card-header"><div class="card-title"><mat-icon>directions_bus</mat-icon><span>Ma journée</span></div></div>
+          <div class="departures-list">
+            @for (v of prochainsDeparts(); track v.id) {
+              <a [routerLink]="['/voyages', v.id]" class="departure-item">
+                <div class="departure-date"><span class="dd-day">{{ v.dateDepart | date: 'dd' }}</span><span class="dd-month">{{ v.dateDepart | date: 'MMM' }}</span></div>
+                <div class="departure-info"><span class="departure-route">{{ v.route?.depart }} → {{ v.route?.arrivee }}</span><span class="departure-meta">{{ v.vehicule?.immatriculation }}</span></div>
+                <div class="departure-time"><span class="dt-hour">{{ v.dateDepart | date: 'HH:mm' }}</span></div>
+              </a>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ============================================================
+         GERANT
+         ============================================================ -->
+    @if (isGerant) {
+      <div class="metric-grid">
+        <div class="metric-card card-cyan">
+          <div class="metric-icon-box"><mat-icon>schedule</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ voyagesStats().planifies }}</span><span class="metric-label">Voyages prévus</span></div>
+        </div>
+        <div class="metric-card card-amber">
+          <div class="metric-icon-box"><mat-icon>directions_bus</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ voyagesStats().enCours }}</span><span class="metric-label">En cours</span></div>
+        </div>
+        <div class="metric-card card-teal">
+          <div class="metric-icon-box"><mat-icon>assignment</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ reservations().length }}</span><span class="metric-label">Réservations du jour</span></div>
+        </div>
+      </div>
+      
+      <div class="row-grid">
+        <div class="detail-card">
+          <div class="card-header"><div class="card-title"><mat-icon>bar_chart</mat-icon><span>Voyages du mois</span></div></div>
+          <app-bar-chart [items]="voyagesChart()" />
+        </div>
+        <div class="detail-card">
+          <div class="card-header"><div class="card-title"><mat-icon>directions_car</mat-icon><span>Véhicules</span></div></div>
+          <app-pie-chart [items]="vehiculesPieChart()" />
+        </div>
+      </div>
+    }
+
+    <!-- ============================================================
+         RECEPTIONNISTE
+         ============================================================ -->
+    @if (isReceptionniste) {
+      <div class="metric-grid">
+        <div class="metric-card card-cyan">
+          <div class="metric-icon-box"><mat-icon>flight_takeoff</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ voyagesStats().planifies }}</span><span class="metric-label">Départs proches</span></div>
+        </div>
+        <div class="metric-card card-amber">
+          <div class="metric-icon-box"><mat-icon>assignment</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ reservations().length }}</span><span class="metric-label">À valider</span></div>
+        </div>
+      </div>
+      
+      <div class="row-grid">
+        <div class="detail-card">
+          <div class="card-header"><div class="card-title"><mat-icon>bar_chart</mat-icon><span>Voyages (7 jours)</span></div></div>
+          <app-bar-chart [items]="voyagesChart()" />
+        </div>
+        <div class="detail-card">
+          <div class="card-header"><div class="card-title"><mat-icon>people</mat-icon><span>Clients récents</span></div></div>
+          <div class="client-list">
+            @for (c of clients(); track c.id) {
+              <div class="client-item">
+                <div class="client-avatar">{{ c.user?.firstName?.charAt(0) || 'C' }}</div>
+                <div class="client-info"><span>{{ c.user?.firstName }} {{ c.user?.lastName }}</span><span class="text-sm">{{ c.phone || 'Pas de numéro' }}</span></div>
+              </div>
+            }
+            @if (clients().length === 0) {
+              <p class="text-sm">Aucun client à afficher.</p>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ============================================================
+         CAISSIER
+         ============================================================ -->
+    @if (isCaissier) {
+      <!-- KPI (CA retiré) -->
+      <div class="metric-grid">
+        <div class="metric-card card-teal">
+          <div class="metric-icon-box"><mat-icon>receipt</mat-icon></div>
+          <div class="metric-info"><span class="metric-value">{{ reservations().length }}</span><span class="metric-label">Réservations du jour</span></div>
+        </div>
+      </div>
+
+      <div class="row-grid">
+        <div class="detail-card">
+          <div class="card-header"><div class="card-title"><mat-icon>bar_chart</mat-icon><span>Réservations aujourd'hui</span></div></div>
+          <app-progress-list [items]="reservationsProgressChart()" />
+        </div>
+        
+        <div class="side-column">
+          
+          <!-- ✅ CA DU JOUR (Hors KPI) -->
+          <div class="detail-card" style="background: #F0FDF4; border-color: #BBF7D0;">
+            <div class="card-header" style="border-bottom: none; margin-bottom: 0.5rem;">
+              <div class="card-title" style="color: #166534;"><mat-icon style="color: #166534;">payments</mat-icon><span>Encaissé aujourd'hui</span></div>
+            </div>
+            <div style="font-size: 2rem; font-weight: 800; color: #166534; padding: 0.5rem 0;">
+              {{ recettesDuJour() | number:'1.0-0' }} Ar
+            </div>
+          </div>
+
+          <!-- Liste à encaisser -->
+          <div class="detail-card">
+            <div class="card-header"><div class="card-title"><mat-icon>pending_actions</mat-icon><span>À encaisser</span></div></div>
+            <div class="client-list">
+              @for (r of reservations().slice(0, 5); track r.id) {
+                <div class="client-item">
+                  <div class="client-info"><span>Réservation #{{ r.id }}</span><span class="text-sm">En attente</span></div>
+                  <span class="badge badge-warning">Payer</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ACTIONS RAPIDES -->
+    <div class="quick-links-card" style="margin-top: 1.5rem;">
+      <h3>Actions rapides</h3>
+      <div class="quick-links-grid">
+        <a routerLink="/voyages" class="quick-link"><div class="quick-icon"><mat-icon>directions_bus</mat-icon></div><span>Voyages</span></a>
+        <a routerLink="/reservations" class="quick-link"><div class="quick-icon"><mat-icon>assignment</mat-icon></div><span>Réservations</span></a>
+        @if (isDirecteur || isGerant) {
+          <a routerLink="/agents" class="quick-link"><div class="quick-icon"><mat-icon>group</mat-icon></div><span>Agents</span></a>
+          <a routerLink="/vehicules" class="quick-link"><div class="quick-icon"><mat-icon>directions_car</mat-icon></div><span>Véhicules</span></a>
+        }
+      </div>
+    </div>
+
+  }
+</div>

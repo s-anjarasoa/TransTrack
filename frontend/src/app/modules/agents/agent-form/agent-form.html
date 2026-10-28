@@ -1,0 +1,173 @@
+<div class="modal-backdrop" (click)="onBackdrop()">
+  <div
+    class="modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="create-agent-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-header">
+      <div class="modal-icon">
+        <mat-icon>person_add</mat-icon>
+      </div>
+      <div>
+        <h3 id="create-agent-title" class="modal-title">{{ title }}</h3>
+        <p class="modal-subtitle">{{ subtitle }}</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="create-form" novalidate>
+
+      <!-- Nom / Prénom -->
+      <div class="field-row">
+        <div class="field">
+          <label for="ac-firstName">Prénom <span class="required">*</span></label>
+          <input id="ac-firstName" type="text" formControlName="firstName" class="input"
+                 autocomplete="off"
+                 [class.input-error]="invalid('firstName')" />
+          @if (hasError('firstName', 'required')) {
+            <p class="field-error">Le prénom est requis</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="ac-lastName">Nom <span class="required">*</span></label>
+          <input id="ac-lastName" type="text" formControlName="lastName" class="input"
+                 autocomplete="off"
+                 [class.input-error]="invalid('lastName')" />
+          @if (hasError('lastName', 'required')) {
+            <p class="field-error">Le nom est requis</p>
+          }
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="field">
+        <label for="ac-email">Email <span class="required">*</span></label>
+        <input id="ac-email" type="email" formControlName="email" class="input"
+               placeholder="prenom.nom@exemple.com" autocomplete="off"
+               [class.input-error]="invalid('email')" />
+        @if (hasError('email', 'required')) {
+          <p class="field-error">L'email est requis</p>
+        }
+        @if (hasError('email', 'email')) {
+          <p class="field-error">Format d'email invalide</p>
+        }
+      </div>
+
+      <!-- Téléphone / CIN -->
+      <div class="field-row">
+        <div class="field">
+          <label for="ac-phone">Téléphone <span class="required">*</span></label>
+          <input id="ac-phone" type="tel" formControlName="phone" class="input"
+                 placeholder="+261340000001" autocomplete="off"
+                 [class.input-error]="invalid('phone')" />
+          @if (hasError('phone', 'required')) {
+            <p class="field-error">Le téléphone est requis</p>
+          }
+          @if (hasError('phone', 'pattern')) {
+            <p class="field-error">Format invalide. Exemple : +261340000001</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="ac-cin">CIN <span class="required">*</span></label>
+          <input id="ac-cin" type="text" formControlName="CIN" class="input"
+                 placeholder="101012345678" autocomplete="off"
+                 [class.input-error]="invalid('CIN')" />
+          @if (hasError('CIN', 'required')) {
+            <p class="field-error">Le CIN est requis</p>
+          }
+          @if (hasError('CIN', 'minlength')) {
+            <p class="field-error">Minimum 8 caractères</p>
+          }
+        </div>
+      </div>
+
+      <!-- Adresse -->
+      <div class="field">
+        <label for="ac-address">Adresse <span class="required">*</span></label>
+        <input id="ac-address" type="text" formControlName="address" class="input"
+               placeholder="Antananarivo" autocomplete="off"
+               [class.input-error]="invalid('address')" />
+        @if (hasError('address', 'required')) {
+          <p class="field-error">L'adresse est requise</p>
+        }
+      </div>
+
+      <!-- Poste -->
+      @if (isAdminMode) {
+        <div class="field">
+          <label>Poste</label>
+          <div class="fixed-type">
+            <mat-icon>badge</mat-icon>
+            <span>Directeur</span>
+          </div>
+        </div>
+      } @else {
+        <div class="field">
+          <label for="ac-type">Poste <span class="required">*</span></label>
+          <select id="ac-type" formControlName="type" class="input">
+            @for (opt of agentTypeOptions; track opt.value) {
+              <option [ngValue]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <!-- Mot de passe temporaire (admin uniquement) -->
+      @if (isAdminMode) {
+        <div class="field">
+          <label for="ac-password">Mot de passe temporaire <span class="required">*</span></label>
+          <input id="ac-password" type="password" formControlName="password" class="input"
+                 autocomplete="new-password"
+                 [class.input-error]="invalid('password')" />
+          @if (hasError('password', 'required')) {
+            <p class="field-error">Le mot de passe est requis</p>
+          }
+          @if (hasError('password', 'minlength')) {
+            <p class="field-error">Minimum 8 caractères</p>
+          }
+        </div>
+
+        <div class="info-box">
+          <mat-icon>info</mat-icon>
+          <p>
+            Communiquez ce mot de passe au Directeur par un canal sécurisé.
+            Il pourra le remplacer avec « Mot de passe oublié ».
+          </p>
+        </div>
+      } @else {
+        <div class="info-box">
+          <mat-icon>mail</mat-icon>
+          <p>
+            L'agent recevra un e-mail avec un lien pour <strong>définir son mot de passe</strong>.
+            Vous n'avez pas à en choisir un.
+          </p>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="error-banner">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" (click)="cancel()" [disabled]="loading()">
+          Annuler
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          @if (loading()) {
+            <span class="btn-spinner"></span>
+            <span>Création…</span>
+          } @else {
+            <mat-icon>check</mat-icon>
+            <span>{{ isAdminMode ? 'Créer le Directeur' : "Créer l'agent" }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,446 @@
+/* ═══════════════════════════════════════════════════════════
+   PAGE
+   ═══════════════════════════════════════════════════════════ */
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.75rem 2rem;
+  background: #F9FAFB;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 0.35rem;
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: #6B7280;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════════════ */
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.form-card,
+.map-card {
+  background: #FFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.map-card {
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.map-container {
+  width: 100%;
+  height: 600px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FORMULAIRE
+   ═══════════════════════════════════════════════════════════ */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-field-full {
+  grid-column: 1 / -1;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-field label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #4B5563;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-field input,
+.form-field select {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background: #FFF;
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  border-color: #0E7490;
+  box-shadow: 0 0 0 3px rgba(14, 76, 92, 0.1);
+}
+
+.form-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HINTS & INDICATEURS
+   ═══════════════════════════════════════════════════════════ */
+.form-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  font-size: 0.78rem;
+  color: #6B7280;
+  background: #F0FDFA;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  border: 1px dashed #5EEAD4;
+}
+
+.form-hint mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+  color: #0E7490;
+}
+
+.inline-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: #F0FDFA;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #0E7490;
+  border: 1px solid #A7F3D0;
+  animation: fadeIn 0.2s ease;
+}
+
+.field-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  font-size: 0.65rem;
+  color: #0891B2;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+.auto-locate-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: #0891B2;
+  background: rgba(8, 145, 178, 0.06);
+  border-radius: 8px;
+  border: 1px dashed rgba(8, 145, 178, 0.3);
+  animation: fadeIn 0.2s ease;
+}
+
+.auto-locate-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: #15803D;
+  background: #ECFDF5;
+  border-radius: 8px;
+  border: 1px solid #A7F3D0;
+  animation: fadeIn 0.25s ease;
+}
+
+.auto-locate-success mat-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+}
+
+.auto-locate-success em {
+  font-style: normal;
+  color: #166534;
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ACTIONS
+   ═══════════════════════════════════════════════════════════ */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BOUTONS
+   ═══════════════════════════════════════════════════════════ */
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.7rem 1.35rem;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: #0E7490;
+  color: #FFF;
+  box-shadow: 0 4px 12px rgba(14, 76, 92, 0.25);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #155E75;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #FFF;
+  border: 1px solid #E5E7EB;
+  color: #374151;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #F9FAFB;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary mat-icon,
+.btn-secondary mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ALERTES
+   ═══════════════════════════════════════════════════════════ */
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #FEF2F2;
+  color: #991B1B;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #FECACA;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+
+.alert-error mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SPINNERS
+   ═══════════════════════════════════════════════════════════ */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #0E7490;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.mini-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(8, 145, 178, 0.2);
+  border-top-color: #0891B2;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #FFF;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONTRÔLES CARTE
+   ═══════════════════════════════════════════════════════════ */
+.map-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 500;
+}
+
+.map-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #FFF;
+  border: 1px solid #E5E7EB;
+  color: #4B5563;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.map-btn:hover:not(:disabled) {
+  background: #F0FDFA;
+  border-color: #0891B2;
+  color: #0891B2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.15);
+}
+
+.map-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.map-btn mat-icon {
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BADGE ZOOM
+   ═══════════════════════════════════════════════════════════ */
+.map-zoom-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #FFF;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  z-index: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MARQUEURS LEAFLET
+   ═══════════════════════════════════════════════════════════ */
+:host ::ng-deep .leaflet-marker-icon {
+  transition: filter 0.2s ease;
+}
+
+:host ::ng-deep .leaflet-marker-icon:hover {
+  filter: brightness(1.15);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ISOLATION (fix z-index)
+   ═══════════════════════════════════════════════════════════ */
+:host {
+  display: block;
+  isolation: isolate;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+  .map-container {
+    height: 400px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KEYFRAMES
+   ═══════════════════════════════════════════════════════════ */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

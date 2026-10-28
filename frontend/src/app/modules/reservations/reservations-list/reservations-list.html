@@ -1,0 +1,164 @@
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ isClient ? 'Mes réservations' : 'Réservations' }}</h1>
+      <p class="page-subtitle">
+        {{ filteredReservations().length }} sur {{ totalCount() }} réservation(s)
+      </p>
+    </div>
+
+    <!-- ✅ Bouton masqué pour le moment : repasser showAddButton à true plus tard -->
+    @if (showAddButton && isClient) {
+      <a routerLink="/reservations/search" class="btn-add">
+        <mat-icon>add</mat-icon>
+        Nouvelle réservation
+      </a>
+    }
+  </div>
+
+  <!-- TOOLBAR : RECHERCHE · DATES · TRI · RESET -->
+  <div class="toolbar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Rechercher par code, ville{{ isAgent ? ', client...' : '...' }}"
+        [value]="searchTerm()"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+    <div class="date-filters">
+      <div class="field">
+        <label>Du</label>
+        <input type="date" [value]="dateFrom()" (change)="onDateFromChange($event)" />
+      </div>
+      <div class="field">
+        <label>Au</label>
+        <input type="date" [value]="dateTo()" (change)="onDateToChange($event)" />
+      </div>
+    </div>
+
+    <div class="field sort-wrapper">
+      <label>Trier par</label>
+      <select [value]="sortBy()" (change)="onSortChange($event)">
+        <option value="date_desc">Plus récentes</option>
+        <option value="date_asc">Plus anciennes</option>
+        <option value="price_desc">Prix décroissant</option>
+        <option value="price_asc">Prix croissant</option>
+      </select>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button type="button" class="btn-reset" (click)="resetFilters()">
+        <mat-icon>close</mat-icon> Effacer
+      </button>
+    }
+  </div>
+
+  <!-- FILTRES STATUT avec compteurs -->
+  <div class="chip-row">
+    <button class="filter-chip" [class.filter-chip-active]="statutFilter() === ''" (click)="setFilter('')">
+      Toutes <span class="chip-count">{{ statusCounts().all }}</span>
+    </button>
+    <button class="filter-chip" [class.filter-chip-active]="statutFilter() === ReservationStatut.EN_ATTENTE" (click)="setFilter(ReservationStatut.EN_ATTENTE)">
+      En attente <span class="chip-count">{{ statusCounts().enAttente }}</span>
+    </button>
+    <button class="filter-chip" [class.filter-chip-active]="statutFilter() === ReservationStatut.CONFIRMEE" (click)="setFilter(ReservationStatut.CONFIRMEE)">
+      Confirmées <span class="chip-count">{{ statusCounts().confirmee }}</span>
+    </button>
+    <button class="filter-chip" [class.filter-chip-active]="statutFilter() === ReservationStatut.PAYEE" (click)="setFilter(ReservationStatut.PAYEE)">
+      Payées <span class="chip-count">{{ statusCounts().payee }}</span>
+    </button>
+    <button class="filter-chip" [class.filter-chip-active]="statutFilter() === ReservationStatut.ANNULEE" (click)="setFilter(ReservationStatut.ANNULEE)">
+      Annulées <span class="chip-count">{{ statusCounts().annulee }}</span>
+    </button>
+  </div>
+
+  <!-- CONTENU -->
+  @if (loading()) {
+    <!-- Skeleton loader -->
+    <div class="res-list">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="res-card skeleton">
+          <div class="sk sk-code"></div>
+          <div class="sk-main">
+            <div class="sk sk-line"></div>
+            <div class="sk sk-line-short"></div>
+          </div>
+          <div class="sk sk-chip"></div>
+          <div class="sk sk-price"></div>
+          <div class="sk sk-chip"></div>
+        </div>
+      }
+    </div>
+  } @else if (filteredReservations().length > 0) {
+    <div class="res-list">
+      @for (r of filteredReservations(); track r.id) {
+        <a [routerLink]="['/reservations', r.id]" class="res-card">
+
+          <div class="res-code">
+            <mat-icon class="icon-sm">confirmation_number</mat-icon>
+            {{ r.codeReservation }}
+          </div>
+
+          <div class="res-main">
+            <span class="route-text">
+              <mat-icon class="icon-sm text-gray">place</mat-icon>
+              {{ r.voyage?.route?.depart }} → {{ r.voyage?.route?.arrivee }}
+            </span>
+            @if (isAgent) {
+              <span class="client-text">
+                <mat-icon class="icon-sm text-gray">person</mat-icon>
+                {{ r.client?.user?.firstName }} {{ r.client?.user?.lastName }}
+              </span>
+            }
+            <span class="date-text">
+              <mat-icon class="icon-sm text-gray">calendar_today</mat-icon>
+              {{ r.voyage?.dateDepart | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+          </div>
+
+          <div class="res-places">
+            <span class="badge-neutral">{{ r.nombrePlaces }} place(s)</span>
+          </div>
+
+          <div class="res-price">{{ formatAriary(r.prixTotal) }}</div>
+
+          <div class="res-status-action">
+            <span class="status-chip" [class]="statutMeta(r.statut).cls">
+              {{ statutMeta(r.statut).label }}
+            </span>
+            @if (isAgent && r.statut === ReservationStatut.EN_ATTENTE) {
+              <button type="button" class="btn-mini-confirm"
+                      [disabled]="actionLoadingId() === r.id"
+                      (click)="confirmer(r, $event)">
+                @if (actionLoadingId() === r.id) {
+                  <mat-icon class="icon-sm spin">progress_activity</mat-icon>
+                } @else {
+                  Confirmer
+                }
+              </button>
+            }
+          </div>
+        </a>
+      }
+    </div>
+  } @else {
+    <!-- Empty state intelligent : message adapté au contexte -->
+    <div class="empty-state">
+      <mat-icon class="empty-icon">{{ hasActiveFilters() ? 'search_off' : 'confirmation_number' }}</mat-icon>
+      <h3>{{ hasActiveFilters() ? 'Aucune réservation trouvée' : 'Aucune réservation' }}</h3>
+      <p>
+        {{ hasActiveFilters()
+            ? 'Essayez de modifier vos filtres ou de faire une autre recherche.'
+            : 'Vos réservations apparaîtront ici dès que vous en aurez créé une.' }}
+      </p>
+      @if (hasActiveFilters()) {
+        <button class="btn-reset mt-4" (click)="resetFilters()">Réinitialiser les filtres</button>
+      }
+    </div>
+  }
+</div>

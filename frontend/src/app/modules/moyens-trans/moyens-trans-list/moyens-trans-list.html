@@ -1,0 +1,285 @@
+<div class="page">
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1 class="page-title">Moyens de transport</h1>
+      <p class="page-subtitle">
+        Gérez les types de transport disponibles pour votre société
+      </p>
+    </div>
+
+    <div class="page-header-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="refresh()"
+        [disabled]="loading()"
+        title="Actualiser">
+        <mat-icon>refresh</mat-icon>
+        <span>Actualiser</span>
+      </button>
+
+      @if (isAgent) {
+        <a routerLink="/moyens-trans/new" class="btn-primary">
+          <mat-icon>add</mat-icon>
+          Nouveau moyen
+        </a>
+      }
+    </div>
+  </div>
+
+    <!-- ============================================================
+       KPI CARDS (Style Tarifs)
+       ============================================================ -->
+  <div class="stat-strip">
+    <div class="stat-tile">
+      <div class="stat-icon-wrapper"><mat-icon>commute</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().total }}</span>
+        <span class="stat-lbl">Total moyens</span>
+      </div>
+    </div>
+
+    <div class="stat-tile stat-tile-success">
+      <div class="stat-icon-wrapper"><mat-icon>check_circle</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().actifs }}</span>
+        <span class="stat-lbl">Actifs</span>
+      </div>
+    </div>
+
+    <div class="stat-tile stat-tile-promo">
+      <div class="stat-icon-wrapper"><mat-icon>pause_circle</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().inactifs }}</span>
+        <span class="stat-lbl">Inactifs</span>
+      </div>
+    </div>
+
+    <div class="stat-tile stat-tile-info">
+      <div class="stat-icon-wrapper"><mat-icon>category</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().parType }}</span>
+        <span class="stat-lbl">Types</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TOOLBAR : RECHERCHE + FILTRES
+       ============================================================ -->
+  <div class="toolbar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Rechercher..."
+        [value]="searchTerm()"
+        (input)="onSearch($event)"
+      />
+      @if (searchTerm()) {
+        <button type="button" class="search-clear" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+
+    <div class="chip-row">
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === 'all' && typeFilter() === ''"
+        (click)="resetFilters()">
+        Tous
+      </button>
+
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === 'actif'"
+        (click)="setStatutFilter('actif')">
+        Actifs
+      </button>
+
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === 'inactif'"
+        (click)="setStatutFilter('inactif')">
+        Inactifs
+      </button>
+
+      <span class="chip-separator"></span>
+
+      @for (t of typeOptions; track t) {
+        <button
+          type="button"
+          class="filter-chip filter-chip-type"
+          [class.filter-chip-active]="typeFilter() === t"
+          (click)="setTypeFilter(typeFilter() === t ? '' : t)">
+          {{ typeLabel(t) }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ============================================================
+       FILTRE DATE DE CRÉATION
+       ============================================================ -->
+  <div class="date-filter">
+    <div class="date-filter-label">
+      <mat-icon>calendar_today</mat-icon>
+      <span>Date de création</span>
+    </div>
+
+    <div class="date-filter-inputs">
+      <div class="date-field">
+        <label for="dateDebut">Du</label>
+        <input
+          id="dateDebut"
+          type="date"
+          class="date-input"
+          [value]="dateDebutFilter()"
+          (input)="setDateDebut($event)"
+        />
+      </div>
+
+      <div class="date-field">
+        <label for="dateFin">Au</label>
+        <input
+          id="dateFin"
+          type="date"
+          class="date-input"
+          [value]="dateFinFilter()"
+          (input)="setDateFin($event)"
+        />
+      </div>
+
+      @if (dateDebutFilter() || dateFinFilter()) {
+        <button type="button" class="date-clear" (click)="clearDates()" title="Effacer les dates">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TABLE (avec overlay de chargement — paginator toujours dans le DOM)
+       ============================================================ -->
+  <div class="table-card">
+
+    <!-- ✅ Overlay de chargement -->
+    @if (loading()) {
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Chargement des moyens de transport...</p>
+      </div>
+    }
+
+    <table mat-table [dataSource]="dataSource" class="data-table">
+
+      <!-- Nom -->
+      <ng-container matColumnDef="nom">
+        <th mat-header-cell *matHeaderCellDef> Nom </th>
+        <td mat-cell *matCellDef="let element">
+          <div class="cell-with-icon">
+            <div class="type-icon-box" [class]="'icon-' + getColor(element.type)">
+              <mat-icon>{{ getIcon(element.type) }}</mat-icon>
+            </div>
+            <div class="cell-content">
+              <div class="cell-strong">{{ element.nom }}</div>
+              @if (element.description) {
+                <div class="cell-muted">{{ element.description }}</div>
+              }
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Type -->
+      <ng-container matColumnDef="type">
+        <th mat-header-cell *matHeaderCellDef> Type </th>
+        <td mat-cell *matCellDef="let element">
+          <span class="chip" [class]="'chip-' + getColor(element.type)">
+            {{ typeLabel(element.type) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Statut -->
+      <ng-container matColumnDef="statut">
+        <th mat-header-cell *matHeaderCellDef> Statut </th>
+        <td mat-cell *matCellDef="let element">
+          <span class="chip" [class.chip-success]="element.isActif"
+                            [class.chip-neutral]="!element.isActif">
+            <span class="chip-dot"></span>
+            {{ element.isActif ? 'Actif' : 'Inactif' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Actions -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="th-actions">Actions</th>
+        <td mat-cell *matCellDef="let element" class="td-actions">
+          <div class="action-cell">
+            @if (isAgent) {
+              <button
+                type="button"
+                class="btn-icon"
+                [class.btn-icon-active]="element.isActif"
+                [matTooltip]="element.isActif ? 'Désactiver' : 'Activer'"
+                [disabled]="actionLoadingId() === element.id"
+                (click)="toggleActif(element)">
+                <mat-icon>power_settings_new</mat-icon>
+              </button>
+
+              <a
+                [routerLink]="['/moyens-trans', element.id, 'edit']"
+                class="btn-icon btn-icon-edit"
+                matTooltip="Modifier">
+                <mat-icon>edit</mat-icon>
+              </a>
+
+              <button
+                type="button"
+                class="btn-icon btn-icon-danger"
+                matTooltip="Supprimer"
+                [disabled]="actionLoadingId() === element.id"
+                (click)="remove(element)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            } @else {
+              <span class="cell-muted">Lecture seule</span>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td colspan="4" class="cell-empty">
+          <mat-icon class="empty-icon">inbox</mat-icon>
+          <p>Aucun moyen de transport trouvé</p>
+          @if (hasActiveFilters()) {
+            <button class="btn-secondary" (click)="resetFilters()">
+              Réinitialiser les filtres
+            </button>
+          }
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [pageSizeOptions]="[5, 10, 20, 50]"
+      showFirstLastButtons
+      aria-label="Sélectionner la page">
+    </mat-paginator>
+  </div>
+</div>

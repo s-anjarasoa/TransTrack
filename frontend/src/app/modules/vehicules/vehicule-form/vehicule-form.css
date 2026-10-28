@@ -1,0 +1,506 @@
+/* ============================================================
+   MODAL BACKDROP
+   ============================================================ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #E5E7EB;
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+  gap: 1rem;
+}
+
+.modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex: 1;
+}
+
+.modal-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #E6F4F7;
+  color: #0E4C5C;
+  flex-shrink: 0;
+}
+
+.modal-icon-edit {
+  background: #FEF3C7;
+  color: #F59E0B;
+}
+
+.modal-icon mat-icon {
+  font-size: 22px;
+  height: 22px;
+  width: 22px;
+}
+
+.modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.modal-subtitle {
+  font-size: 0.78rem;
+  color: #6B7280;
+  margin: 0.15rem 0 0 0;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-close:hover {
+  color: #DC2626;
+  background: #FEE2E2;
+}
+
+/* ============================================================
+   LOADER
+   ============================================================ */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 2rem;
+  color: #0E4C5C;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #0E4C5C;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   FORM BODY
+   ============================================================ */
+.form-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0E4C5C;
+  margin: 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.section-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #E6F4F7;
+  color: #0E4C5C;
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   GRILLES & CHAMPS
+   ============================================================ */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.req {
+  color: #EF4444;
+}
+
+/* ============================================================
+   INPUTS & SELECTS
+   ============================================================ */
+.input {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #D1D5DB;
+  border-radius: 10px;
+  background: #F9FAFB;
+  font-size: 0.88rem;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input.uppercase {
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.input:focus {
+  border-color: #4AACBC;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(14, 76, 92, 0.12);
+}
+
+select.input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  appearance: none;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.input-error {
+  border-color: #EF4444;
+  background: #FEF2F2;
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: #EF4444;
+  margin: 0;
+}
+
+/* ============================================================
+   INPUT AVEC SUFFIXE (places)
+   ============================================================ */
+.input-with-suffix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-suffix .input {
+  padding-right: 66px;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6B7280;
+  pointer-events: none;
+}
+
+/* ============================================================
+   ✅ APERÇU DU MOYEN DE TRANSPORT
+   ============================================================ */
+.transport-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #E6F4F7;
+  border: 1px solid #C0E3E9;
+  border-radius: 10px;
+  margin-top: 4px;
+  animation: previewIn 0.2s ease;
+}
+
+@keyframes previewIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.transport-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #FFFFFF;
+  color: #0E4C5C;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(14, 76, 92, 0.1);
+}
+
+.transport-icon mat-icon {
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+}
+
+.transport-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.transport-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0E4C5C;
+  line-height: 1.2;
+}
+
+.transport-type {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #4AACBC;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   ✅ INPUT AVEC ICÔNE DE STATUT (validation dates)
+   ============================================================ */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon .input {
+  padding-right: 44px;
+}
+
+.input-status-icon {
+  position: absolute;
+  right: 14px;
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+  pointer-events: none;
+  transition: color 0.15s ease;
+}
+
+.icon-success {
+  color: #16A34A;
+}
+
+.icon-warning {
+  color: #D97706;
+}
+
+/* ✅ Input en état "warning" (date expirée) */
+.input-warning {
+  border-color: #F59E0B;
+  background: #FFFBEB;
+}
+
+.input-warning:focus {
+  border-color: #D97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+}
+
+/* ✅ Hint warning avec icône inline */
+.field-hint.warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #D97706;
+  font-weight: 600;
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.field-hint.warning mat-icon {
+  font-size: 14px;
+  height: 14px;
+  width: 14px;
+}
+
+/* ============================================================
+   ERREUR BANNER
+   ============================================================ */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+}
+
+.error-banner mat-icon {
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   FOOTER & BOUTONS
+   ============================================================ */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 1rem;
+  border-top: 1px solid #F3F4F6;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--danger);
+  background: var(--danger);
+  color: #FFFFFF;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-secondary:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary-500);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--primary-500);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-primary:hover {
+  background: var(--primary-50);
+  color: var(--primary-500);
+  border-color: var(--primary-400);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}

@@ -1,0 +1,55 @@
+<div class="bell">
+  <button
+    type="button"
+    class="bell-btn"
+    (click)="toggle()"
+    aria-haspopup="true"
+    [attr.aria-expanded]="open()"
+    [attr.aria-label]="inbox.unreadCount() > 0 ? 'Notifications, ' + inbox.unreadCount() + ' non lue(s)' : 'Notifications'"
+  >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    @if (inbox.unreadCount() > 0) {
+      <span class="bell-badge" aria-hidden="true">{{ inbox.unreadCount() > 9 ? '9+' : inbox.unreadCount() }}</span>
+    }
+  </button>
+
+  @if (open()) {
+    <div class="panel" role="region" aria-label="Notifications">
+      <div class="panel-head">
+        <h3>Notifications</h3>
+        @if (inbox.unreadCount() > 0) {
+          <button type="button" class="link-btn" (click)="inbox.markAllAsRead()">Tout marquer comme lu</button>
+        }
+      </div>
+
+      <div class="panel-body">
+        @if (inbox.loadingItems() && inbox.items().length === 0) {
+          <p class="panel-empty">Chargement...</p>
+        } @else if (inbox.items().length === 0) {
+          <p class="panel-empty">Aucune notification pour le moment</p>
+        } @else {
+          @for (n of inbox.items(); track n.id) {
+            <button type="button" class="item" [class.item-unread]="!n.isLue" [class.item-urgent]="isUrgent(n)" (click)="onItemClick(n)">
+              <span class="item-dot" [class.item-dot-on]="!n.isLue"></span>
+              <span class="item-content">
+                <span class="item-top">
+                  <span class="item-type">{{ typeLabel(n.type) }}</span>
+                  <span class="item-time">{{ timeAgo(n.createdAt) }}</span>
+                </span>
+                <span class="item-title">
+                  @if (!n.isLue) { <span class="sr-only">Non lue : </span> }{{ n.titre }}
+                </span>
+                <span class="item-msg">{{ n.message }}</span>
+                @if (n.metadata?.actionLabel) {
+                  <span class="item-action">{{ n.metadata?.actionLabel }} →</span>
+                }
+              </span>
+            </button>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

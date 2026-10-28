@@ -1,0 +1,348 @@
+<div class="page">
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement du voyage...</p>
+    </div>
+  } @else if (!voyage()) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">search_off</mat-icon>
+      <h3>Voyage introuvable</h3>
+      <a routerLink="/voyages" class="btn-primary">Retour aux voyages</a>
+    </div>
+  } @else {
+
+    <a routerLink="/voyages" class="back-link">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Retour aux voyages</span>
+    </a>
+
+    <!-- HERO HEADER -->
+    <div class="hero">
+      <div class="hero-left">
+        <div class="hero-tags">
+          <span class="code-tag">{{ voyage()!.codeVoyage }}</span>
+          <span class="status-chip" [class]="statutMeta(voyage()!.statut).cls">
+            <span class="status-dot"></span>
+            {{ statutMeta(voyage()!.statut).label }}
+          </span>
+        </div>
+
+        <h1 class="hero-title">
+          <span class="city">{{ voyage()!.route?.depart }}</span>
+          <mat-icon class="arrow-icon">arrow_forward</mat-icon>
+          <span class="city">{{ voyage()!.route?.arrivee }}</span>
+        </h1>
+
+        <div class="hero-meta">
+          <span class="meta-item">
+            <mat-icon>calendar_today</mat-icon>
+            {{ voyage()!.dateDepart | date:'EEEE d MMMM yyyy · HH:mm' }}
+          </span>
+          <span class="meta-item">
+            <mat-icon>schedule</mat-icon>
+            {{ dureeVoyage() }}
+          </span>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        @if (isAgent && !isLocked()) {
+          <a [routerLink]="['/voyages', voyage()!.id, 'edit']" class="btn-secondary">
+            <mat-icon>edit</mat-icon>
+            <span>Modifier</span>
+          </a>
+        }
+
+        @if (isAgent && !isLocked() && voyage()!.statut === VoyageStatut.PLANIFIE) {
+          <button type="button" class="btn-danger-outline" (click)="remove()" [disabled]="actionLoading()">
+            <mat-icon>delete</mat-icon>
+            <span>Supprimer</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-primary">
+          <mat-icon>confirmation_number</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">
+            {{ voyage()!.placesTotales - voyage()!.placesDisponibles }}/{{ voyage()!.placesTotales }}
+          </span>
+          <span class="kpi-label">Places occupées</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-success">
+          <mat-icon>payments</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatAriary(voyage()!.prix) }}</span>
+          <span class="kpi-label">Prix ({{ categorieLabel() }})</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-info">
+          <mat-icon>directions_car</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ voyage()!.vehicule?.immatriculation }}</span>
+          <span class="kpi-label">{{ voyage()!.vehicule?.marque }} {{ voyage()!.vehicule?.modele }}</span>
+        </div>
+      </div>
+
+      @if (voyage()!.retardMinutes) {
+        <div class="kpi-card kpi-card-warning">
+          <div class="kpi-icon kpi-icon-warning">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ voyage()!.retardMinutes }} min</span>
+            <span class="kpi-label">Retard cumulé</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (isLocked()) {
+      <div class="lock-banner">
+        <mat-icon>lock</mat-icon>
+        <span>
+          Ce voyage est <strong>{{ statutMeta(voyage()!.statut).label.toLowerCase() }}</strong>
+          — aucune modification n'est possible.
+        </span>
+      </div>
+    }
+
+    <!-- CONTENU PRINCIPAL -->
+    <div class="content-grid">
+
+      <!-- COLONNE GAUCHE : DÉTAILS -->
+      <div class="content-main">
+
+        <!-- Détails du voyage -->
+        <div class="detail-card">
+          <div class="card-header">
+            <div class="card-title">
+              <mat-icon>info</mat-icon>
+              <span>Informations du voyage</span>
+            </div>
+          </div>
+
+          <dl class="info-grid">
+            <div class="info-row">
+              <dt><mat-icon>flight_takeoff</mat-icon> Départ</dt>
+              <dd>{{ voyage()!.dateDepart | date:'dd/MM/yyyy à HH:mm' }}</dd>
+            </div>
+
+            <div class="info-row">
+              <dt><mat-icon>flight_land</mat-icon> Arrivée</dt>
+              <dd>{{ voyage()!.dateArrivee | date:'dd/MM/yyyy à HH:mm' }}</dd>
+            </div>
+
+            <div class="info-row">
+              <dt><mat-icon>person</mat-icon> Chauffeur</dt>
+              <dd>
+                @if (voyage()!.chauffeur?.user) {
+                  {{ voyage()!.chauffeur?.user?.firstName }} {{ voyage()!.chauffeur?.user?.lastName }}
+                } @else {
+                  <span class="muted">Non assigné</span>
+                }
+              </dd>
+            </div>
+
+            <div class="info-row">
+              <dt><mat-icon>directions_car</mat-icon> Véhicule</dt>
+              <dd>
+                {{ voyage()!.vehicule?.immatriculation }} — {{ voyage()!.vehicule?.marque }} {{ voyage()!.vehicule?.modele }}
+              </dd>
+            </div>
+
+            @if (voyage()!.motifAnnulation) {
+              <div class="info-row info-row-danger">
+                <dt><mat-icon>cancel</mat-icon> Motif d'annulation</dt>
+                <dd>{{ voyage()!.motifAnnulation }}</dd>
+              </div>
+            }
+
+            @if (voyage()!.notes) {
+              <div class="info-row info-row-full">
+                <dt><mat-icon>sticky_note_2</mat-icon> Notes</dt>
+                <dd class="notes-text">{{ voyage()!.notes }}</dd>
+              </div>
+            }
+          </dl>
+        </div>
+
+        <!-- CARTE -->
+        <div class="detail-card map-card">
+          <div class="card-header">
+            <div class="card-title">
+              <mat-icon>map</mat-icon>
+              <span>Aperçu de l'itinéraire</span>
+            </div>
+          </div>
+          <div #mapContainer class="map-container"></div>
+        </div>
+
+        <!-- Réservations -->
+        @if (voyage()!.reservations && voyage()!.reservations!.length > 0) {
+          <div class="detail-card">
+            <div class="card-header">
+              <div class="card-title">
+                <mat-icon>event_seat</mat-icon>
+                <span>Réservations ({{ voyage()!.reservations!.length }})</span>
+              </div>
+            </div>
+            <div class="reservations-count">
+              <p>{{ voyage()!.reservations!.length }} réservation(s) associée(s) à ce voyage.</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- COLONNE DROITE : ACTIONS -->
+      @if (isAgent && !isLocked()) {
+        <aside class="content-side">
+          <div class="detail-card action-card">
+            <div class="card-header">
+              <div class="card-title">
+                <mat-icon>flash_on</mat-icon>
+                <span>Actions disponibles</span>
+              </div>
+            </div>
+
+            @if (errorMessage()) {
+              <div class="alert-error">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorMessage() }}</span>
+              </div>
+            }
+
+            @if (!isAssignedChauffeur() && (voyage()!.statut === VoyageStatut.PLANIFIE || voyage()!.statut === VoyageStatut.EN_COURS)) {
+              <div class="info-banner">
+                <mat-icon>info</mat-icon>
+                <span>Seul le chauffeur assigné peut démarrer, retarder ou terminer ce voyage.</span>
+              </div>
+            }
+
+            @if (!showRetardForm() && !showCancelForm()) {
+              <div class="action-stack">
+                @if (voyage()!.statut === VoyageStatut.PLANIFIE) {
+                  <button type="button" class="btn-action btn-start" [disabled]="actionLoading() || !canDemarrer()" (click)="demarrer()">
+                    <mat-icon>play_arrow</mat-icon> <span>Démarrer le voyage</span>
+                  </button>
+                }
+
+                @if (voyage()!.statut === VoyageStatut.EN_COURS) {
+                  <button type="button" class="btn-action btn-warn" [disabled]="actionLoading() || !canRetarder()" (click)="showRetardForm.set(true)">
+                    <mat-icon>schedule</mat-icon> <span>Signaler un retard</span>
+                  </button>
+                  <button type="button" class="btn-action btn-success" [disabled]="actionLoading() || !canTerminer()" (click)="terminer()">
+                    <mat-icon>check_circle</mat-icon> <span>Marquer comme terminé</span>
+                  </button>
+                }
+
+                @if (canAnnuler()) {
+                  <button type="button" class="btn-action btn-danger-outline" [disabled]="actionLoading()" (click)="showCancelForm.set(true)">
+                    <mat-icon>cancel</mat-icon> <span>Annuler le voyage</span>
+                  </button>
+                }
+              </div>
+            }
+
+            @if (showRetardForm()) {
+              <div class="cancel-form">
+                <div class="form-header">
+                  <mat-icon>schedule</mat-icon>
+                  <span>Signaler un retard</span>
+                </div>
+                <label for="motifRetard">Motif du retard</label>
+                <textarea id="motifRetard" class="textarea" [value]="motifRetard()" (input)="motifRetard.set($any($event.target).value)" placeholder="Ex: Panne mécanique..."></textarea>
+                <label for="retardMin">Durée estimée (minutes)</label>
+                <input id="retardMin" type="number" min="1" class="input" [value]="retardMinutes()" (input)="retardMinutes.set(+$any($event.target).value)" />
+                <div class="action-row">
+                  <button type="button" class="btn-secondary" (click)="showRetardForm.set(false)">Annuler</button>
+                  <button type="button" class="btn-action btn-warn" [disabled]="actionLoading()" (click)="confirmerRetard()">Confirmer</button>
+                </div>
+              </div>
+            }
+
+            @if (showCancelForm()) {
+              <div class="cancel-form">
+                <div class="form-header">
+                  <mat-icon>cancel</mat-icon>
+                  <span>Annuler le voyage</span>
+                </div>
+                <label for="motif">Motif d'annulation</label>
+                <textarea id="motif" class="textarea" [value]="motifAnnulation()" (input)="motifAnnulation.set($any($event.target).value)" placeholder="Expliquez la raison..."></textarea>
+                <div class="action-row">
+                  <button type="button" class="btn-secondary" (click)="showCancelForm.set(false)">Retour</button>
+                  <button type="button" class="btn-action btn-danger" [disabled]="actionLoading()" (click)="confirmerAnnulation()">Confirmer</button>
+                </div>
+              </div>
+            }
+          </div>
+        </aside>
+      }
+    </div>
+
+    <!-- HISTORIQUE -->
+    @if (voyage()!.statusHistory && voyage()!.statusHistory!.length > 0) {
+      <div class="detail-card history-card">
+        <div class="card-header">
+          <div class="card-title">
+            <mat-icon>history</mat-icon>
+            <span>Historique des changements de statut</span>
+          </div>
+          <span class="history-count">{{ voyage()!.statusHistory!.length }} événement(s)</span>
+        </div>
+        <div class="timeline">
+          @for (h of voyage()!.statusHistory!; track h.id; let i = $index) {
+            <div class="timeline-item" [class.is-last]="i === voyage()!.statusHistory!.length - 1">
+              <div class="timeline-marker">
+                <div class="timeline-dot" [class]="statutMeta(h.nouveauStatut).cls"></div>
+                @if (i !== voyage()!.statusHistory!.length - 1) {
+                  <div class="timeline-line"></div>
+                }
+              </div>
+
+              <div class="timeline-body">
+                <div class="timeline-head">
+                  <span class="timeline-label">{{ historyLabel(h) }}</span>
+                  <span class="timeline-date">
+                    <mat-icon>schedule</mat-icon>
+                    {{ h.createdAt | date:'dd/MM/yyyy · HH:mm' }}
+                  </span>
+                </div>
+
+                @if (h.agent?.user) {
+                  <div class="timeline-agent">
+                    <div class="agent-avatar">
+                      {{ getInitial(h.agent?.user?.firstName) }}{{ getInitial(h.agent?.user?.lastName) }}
+                    </div>
+                    <span>{{ h.agent?.user?.firstName }} {{ h.agent?.user?.lastName }}</span>
+                  </div>
+                }
+
+                @if (h.motif) {
+                  <div class="timeline-motif">
+                    <mat-icon>chat_bubble_outline</mat-icon>
+                    <span>{{ h.motif }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

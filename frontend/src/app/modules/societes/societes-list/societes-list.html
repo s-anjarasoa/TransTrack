@@ -1,0 +1,229 @@
+<div class="page">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Gestion des Sociétés</h1>
+      <p class="page-subtitle">{{ total() }} société(s) inscrite(s) sur la plateforme</p>
+    </div>
+    @if (isAdmin) {
+      <a routerLink="/societes/new" class="btn-primary">
+        <mat-icon>add</mat-icon>
+        Nouvelle société
+      </a>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des sociétés...</p>
+    </div>
+  } @else {
+
+    <!-- ✅ KPI STRIP -->
+    <div class="stat-strip">
+      <div class="stat-tile">
+        <div class="stat-icon-wrapper"><mat-icon>domain</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().total }}</span>
+          <span class="stat-lbl">Total Sociétés</span>
+        </div>
+      </div>
+
+      <div class="stat-tile stat-tile-success">
+        <div class="stat-icon-wrapper"><mat-icon>check_circle</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().validees }}</span>
+          <span class="stat-lbl">Validées</span>
+        </div>
+      </div>
+
+      <div class="stat-tile stat-tile-warning">
+        <div class="stat-icon-wrapper"><mat-icon>pending_actions</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().enAttente }}</span>
+          <span class="stat-lbl">En attente</span>
+        </div>
+      </div>
+
+      <div class="stat-tile stat-tile-danger">
+        <div class="stat-icon-wrapper"><mat-icon>cancel</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().rejetees }}</span>
+          <span class="stat-lbl">Rejetées</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ TOOLBAR (RECHERCHE & FILTRES) -->
+    <div class="toolbar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Rechercher une société (Nom, NIF, Email...)" 
+          [value]="searchTerm()" 
+          (input)="onSearch($event)"
+        />
+        @if (searchTerm()) {
+          <button type="button" class="search-clear" (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+
+      <!-- ✅ CHIPS FILTRES (Code exact fourni) -->
+      <div class="chip-row">
+        <button 
+          type="button" 
+          class="filter-chip" 
+          [class.filter-chip-active]="statutFilter() === ''" 
+          (click)="onFilterChange('')"
+        >
+          Toutes <span class="filter-count">{{ total() }}</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="filter-chip" 
+          [class.filter-chip-active]="statutFilter() === SocieteStatut.EN_ATTENTE" 
+          (click)="onFilterChange(SocieteStatut.EN_ATTENTE)"
+        >
+          En attente <span class="filter-count">{{ getCountByStatut(SocieteStatut.EN_ATTENTE) }}</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="filter-chip" 
+          [class.filter-chip-active]="statutFilter() === SocieteStatut.VALIDEE" 
+          (click)="onFilterChange(SocieteStatut.VALIDEE)"
+        >
+          Validées <span class="filter-count">{{ getCountByStatut(SocieteStatut.VALIDEE) }}</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="filter-chip" 
+          [class.filter-chip-active]="statutFilter() === SocieteStatut.REJETEE" 
+          (click)="onFilterChange(SocieteStatut.REJETEE)"
+        >
+          Rejetées <span class="filter-count">{{ getCountByStatut(SocieteStatut.REJETEE) }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ TABLEAU -->
+    <div class="table-card">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Société</th>
+              <th>Directeur</th>
+              <th>Contact</th>
+              <th>NIF</th>
+              <th>Statut</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (societe of societes(); track societe.id) {
+              <tr>
+                <td class="cell-strong" data-label="Société">
+                  <a [routerLink]="['/societes', societe.id]" class="link-name">
+                    {{ societe.name }}
+                  </a>
+                </td>
+
+                <td data-label="Directeur">
+                  <div class="director-info">
+                    <span>{{ directeurName(societe) }}</span>
+                    @if (societe.directeur?.type) {
+                      <span class="agent-type-badge">
+                        {{ societe.directeur?.type | agentTypeLabel }}
+                      </span>
+                    }
+                  </div>
+                </td>
+
+                <td data-label="Contact">
+                  <div class="contact-info">
+                    <span class="contact-email">{{ societe.email }}</span>
+                    <span class="contact-phone">{{ societe.phone }}</span>
+                  </div>
+                </td>
+
+                <td data-label="NIF">
+                  <code class="nif-code">{{ societe.nif }}</code>
+                </td>
+
+                <td data-label="Statut">
+                  <span class="badge" [class]="statusBadgeClass(societe.statut)">
+                    {{ getStatusLabel(societe.statut) }}
+                  </span>
+                </td>
+
+                <td class="cell-action" data-label="Actions">
+                  <div class="action-cell">
+                    @if (societe.statut === SocieteStatut.EN_ATTENTE && isAdmin) {
+                      <button
+                        type="button"
+                        class="btn-mini btn-mini-success"
+                        [disabled]="actionLoadingId() === societe.id"
+                        (click)="validateInline(societe, $event)"
+                        title="Valider"
+                      >
+                        <mat-icon>check</mat-icon> Valider
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn-mini btn-mini-danger"
+                        [disabled]="actionLoadingId() === societe.id"
+                        (click)="rejectInline(societe, $event)"
+                        title="Rejeter"
+                      >
+                        <mat-icon>close</mat-icon> Rejeter
+                      </button>
+                    }
+
+                    <a [routerLink]="['/societes', societe.id]" class="btn-icon" title="Détails">
+                      <mat-icon>visibility</mat-icon>
+                    </a>
+
+                    @if (isAdmin) {
+                      <button
+                        type="button"
+                        class="btn-icon btn-icon-danger"
+                        [disabled]="actionLoadingId() === societe.id"
+                        (click)="deleteInline(societe, $event)"
+                        title="Supprimer la société"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="cell-empty">
+                  <div class="empty-state">
+                    <span class="empty-icon">
+                      <mat-icon>search_off</mat-icon>
+                    </span>
+                    <p>Aucune société trouvée</p>
+                    @if (isAdmin) {
+                      <a routerLink="/societes/new" class="btn-primary btn-sm">Créer une société</a>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

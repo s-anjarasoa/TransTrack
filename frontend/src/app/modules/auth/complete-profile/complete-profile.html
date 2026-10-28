@@ -1,0 +1,106 @@
+<div class="page-wrap">
+  <div class="card-shell">
+
+    <!-- ============================================================
+         PANNEAU GAUCHE - BRANDING
+         ============================================================ -->
+    <div class="branding-panel">
+      <div class="branding-bg"></div>
+
+      <div class="relative z-10">
+        <div class="flex items-center gap-3">
+          <div class="logo-circle">
+            <mat-icon>commute</mat-icon>
+          </div>
+          <span class="logo-text">TransTrack</span>
+        </div>
+        <p class="logo-subtitle">Madagascar · Transport Multimodal</p>
+      </div>
+
+      <div class="branding-content">
+        <h2 class="branding-title">
+          Complétez<br>
+          <span class="branding-highlight">votre profil</span>
+        </h2>
+
+        <p class="branding-desc">
+          Choisissez votre type de compte et remplissez les informations correspondantes.
+        </p>
+
+        <!-- Indicateur d'étapes -->
+        <div class="steps-indicator">
+          <div class="step active">
+            <span class="step-num">1</span>
+            <span class="step-label">Compléter le profil</span>
+          </div>
+          <div class="step pending">
+            <span class="step-num">2</span>
+            <span class="step-label">Validation (Agent)</span>
+          </div>
+          <div class="step pending">
+            <span class="step-num">3</span>
+            <span class="step-label">Code d'invitation (Agent)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PANNEAU DROIT - FORMULAIRES
+         ============================================================ -->
+    <div class="form-panel">
+      <div class="form-container">
+        <div class="step-content">
+
+          <div class="step-header">
+            <h1 class="step-title">Bienvenue 👋</h1>
+            <p class="step-subtitle">
+              Choisissez votre type de compte et complétez vos informations
+            </p>
+          </div>
+
+          <!-- TABS -->
+          <mat-tab-group
+            [selectedIndex]="selectedTabIndex()"
+            (selectedIndexChange)="onTabChange($event)"
+            animationDuration="300ms"
+            class="profile-tabs"
+            preserveContent
+          >
+            <!-- ONGLET 1 : CLIENT -->
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">person</mat-icon>
+                <span>Client</span>
+              </ng-template>
+
+              <app-client-form (completed)="onClientComplete()" />
+            </mat-tab>
+
+            <!-- ONGLET 2 : AGENT -->
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon class="tab-icon">badge</mat-icon>
+                <span>Agent</span>
+              </ng-template>
+
+              <app-agent-form
+                (requestSent)="onAgentRequestSent()"
+                (errorOccurred)="onAgentError($event)"
+              />
+            </mat-tab>
+          </mat-tab-group>
+
+          <!-- ✅ Erreurs de la demande agent (auparavant jamais affichées) -->
+          @if (errorMessage()) {
+            <div class="error-banner">
+              <mat-icon>error_outline</mat-icon>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,149 @@
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1 class="page-title">Grille Tarifaire</h1>
+      <p class="page-subtitle">Gérez les prix par itinéraire et par catégorie de passagers</p>
+    </div>
+    @if (isAgent) {
+      <a routerLink="/tarifs/new" class="btn-primary">
+        <mat-icon>add</mat-icon>
+        <span>Nouveau tarif</span>
+      </a>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de la grille...</p>
+    </div>
+  } @else {
+
+    <!-- KPI STRIP -->
+    <div class="stat-strip">
+      <div class="stat-tile">
+        <div class="stat-icon-wrapper"><mat-icon>local_offer</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().total }}</span>
+          <span class="stat-lbl">Tarifs configurés</span>
+        </div>
+      </div>
+      <div class="stat-tile stat-tile-success">
+        <div class="stat-icon-wrapper"><mat-icon>check_circle</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().actifs }}</span>
+          <span class="stat-lbl">Actifs</span>
+        </div>
+      </div>
+      <div class="stat-tile stat-tile-promo">
+        <div class="stat-icon-wrapper"><mat-icon>trending_down</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().enPromo }}</span>
+          <span class="stat-lbl">En promotion</span>
+        </div>
+      </div>
+      <div class="stat-tile stat-tile-info">
+        <div class="stat-icon-wrapper"><mat-icon>alt_route</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ nbRoutes() }}</span>
+          <span class="stat-lbl">Itinéraires</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" class="search-input" placeholder="Rechercher une ville, une catégorie..." [value]="searchTerm()" (input)="onSearch($event)">
+        @if (searchTerm()) {
+          <button type="button" class="search-clear" (click)="clearSearch()"><mat-icon>close</mat-icon></button>
+        }
+      </div>
+
+      <div class="chip-row">
+        <button class="filter-chip" [class.filter-chip-active]="categorieFilter() === ''" (click)="setFilter('')">
+          Toutes catégories
+        </button>
+        @for (cat of categorieOptions; track cat) {
+          <button class="filter-chip" [class.filter-chip-active]="categorieFilter() === cat" (click)="setFilter(cat)">
+            {{ categorieLabel(cat) }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- GRILLE -->
+    @if (tarifs().length > 0) {
+      <div class="card-grid">
+        @for (t of pagedTarifs(); track t.id) {
+          <div class="tarif-card" [class.inactive]="!t.isActif">
+            
+            <div class="card-status-line" [class.promo]="t.prixPromo"></div>
+
+            <div class="tarif-header">
+              <span class="cat-badge">{{ categorieLabel(t.categorie) }}</span>
+              @if (t.prixPromo) { 
+                <span class="promo-badge"><mat-icon>local_offer</mat-icon> Promo</span> 
+              }
+            </div>
+
+            <div class="tarif-route">
+              <span class="city">{{ t.route?.depart }}</span>
+              <mat-icon class="route-arrow">arrow_forward</mat-icon>
+              <span class="city">{{ t.route?.arrivee }}</span>
+            </div>
+
+            <div class="tarif-price-box">
+              @if (t.prixPromo) {
+                <span class="price-old">{{ formatAriary(t.prix) }}</span>
+                <span class="price-current price-promo">{{ formatAriary(t.prixPromo) }}</span>
+              } @else {
+                <span class="price-current">{{ formatAriary(t.prix) }}</span>
+              }
+            </div>
+
+            @if (isAgent) {
+              <div class="tarif-actions">
+                <button type="button" class="btn-toggle" [class.is-active]="t.isActif" [disabled]="actionLoadingId() === t.id" (click)="toggleActif(t)">
+                  <mat-icon>{{ t.isActif ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+                  {{ t.isActif ? 'Actif' : 'Inactif' }}
+                </button>
+                
+                <a [routerLink]="['/tarifs', t.id, 'edit']" class="btn-icon" matTooltip="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </a>
+                
+                <button type="button" class="btn-icon btn-icon-danger" [disabled]="actionLoadingId() === t.id" (click)="remove(t)" matTooltip="Supprimer">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- PAGINATION -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button type="button" class="page-btn" [disabled]="currentPage() === 1" (click)="previousPage()">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          @for (p of pages(); track p) {
+            <button type="button" class="page-btn" [class.page-btn-active]="p === currentPage()" (click)="goToPage(p)">{{ p }}</button>
+          }
+          <button type="button" class="page-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          <span class="page-range">{{ rangeText() }}</span>
+        </div>
+      }
+    } @else {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">local_offer</mat-icon>
+        <h3>Aucun tarif configuré</h3>
+        <p>Définissez un tarif pour chaque itinéraire avant de créer des voyages.</p>
+      </div>
+    }
+  }
+</div>

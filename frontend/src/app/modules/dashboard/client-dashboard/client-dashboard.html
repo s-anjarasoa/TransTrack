@@ -1,0 +1,168 @@
+<div class="dash">
+
+  <!-- HEADER -->
+  <div class="dash-header">
+    <div class="welcome-text">
+      <h1 class="dash-title">
+        Bonjour, <span class="text-gradient">{{ firstName || 'Voyageur' }}</span>
+      </h1>
+      <p class="dash-subtitle">Prêt pour votre prochain voyage ?</p>
+    </div>
+    <div class="header-date">
+      <mat-icon>calendar_today</mat-icon>
+      <span>{{ today | date:'EEEE d MMMM yyyy' }}</span>
+    </div>
+  </div>
+
+  @if (partialError()) {
+    <div class="alert-card alert-warning">
+      <div class="alert-icon-box"><mat-icon>warning</mat-icon></div>
+      <div class="alert-content">
+        <h3>Données incomplètes</h3>
+        <p>Certaines informations n'ont pas pu être chargées.</p>
+      </div>
+      <button type="button" class="alert-btn" (click)="reload()">Actualiser</button>
+    </div>
+  }
+
+  <!-- ============================================================
+       KPI CARDS
+       ============================================================ -->
+  <div class="metric-grid">
+    <div class="metric-card card-teal">
+      <div class="metric-icon-box"><mat-icon>confirmation_number</mat-icon></div>
+      <div class="metric-info">
+        <span class="metric-value">{{ totalReservations() }}</span>
+        <span class="metric-label">Réservations</span>
+      </div>
+    </div>
+    <div class="metric-card card-cyan">
+      <div class="metric-icon-box"><mat-icon>directions_bus</mat-icon></div>
+      <div class="metric-info">
+        <span class="metric-value">{{ upcoming().length }}</span>
+        <span class="metric-label">Voyages à venir</span>
+      </div>
+    </div>
+    <div class="metric-card card-emerald">
+      <div class="metric-icon-box"><mat-icon>payments</mat-icon></div>
+      <div class="metric-info">
+        <span class="metric-value">{{ totalDepense() | number:'1.0-0' }} Ar</span>
+        <span class="metric-label">Total dépensé</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CONTENU PRINCIPAL (Billets + Actions)
+       ============================================================ -->
+  <div class="main-content-grid">
+    
+    <!-- COLONNE GAUCHE : Mes prochains voyages (Format Billet) -->
+    <div class="tickets-column">
+      <div class="section-header">
+        <h2>Mes prochains voyages</h2>
+      </div>
+
+      @if (upcoming().length === 0) {
+        <div class="empty-state">
+          <mat-icon>luggage</mat-icon>
+          <h3>Aucun voyage prévu</h3>
+          <p>Vous n'avez pas encore de réservation à venir.</p>
+          <a routerLink="/reservations/search" class="btn-primary mt-4">Trouver un trajet</a>
+        </div>
+      } @else {
+        <div class="ticket-list">
+          @for (r of upcoming().slice(0, 4); track r.id) {
+            <a [routerLink]="['/reservations', r.id]" class="ticket-card">
+              
+              <!-- Partie gauche : Date -->
+              <div class="ticket-date">
+                <span class="td-day">{{ r.voyage?.dateDepart | date: 'dd' }}</span>
+                <span class="td-month">{{ r.voyage?.dateDepart | date: 'MMM' }}</span>
+              </div>
+
+              <!-- Partie centrale : Trajet -->
+              <div class="ticket-info">
+                <div class="ticket-route">
+                  <span class="route-city">{{ r.voyage?.route?.depart }}</span>
+                  <mat-icon class="route-icon">arrow_forward</mat-icon>
+                  <span class="route-city">{{ r.voyage?.route?.arrivee }}</span>
+                </div>
+                <div class="ticket-meta">
+                  <span><mat-icon>schedule</mat-icon> {{ r.voyage?.dateDepart | date: 'HH:mm' }}</span>
+                  <span><mat-icon>event_seat</mat-icon> {{ r.nombrePlaces }} place(s)</span>
+                  <span><mat-icon>confirmation_number</mat-icon> {{ r.codeReservation }}</span>
+                </div>
+              </div>
+
+              <!-- Partie droite : Statut -->
+              <div class="ticket-status">
+                <span class="status-chip" [class]="statutClass(r.statut)">
+                  {{ statutLabel(r.statut) }}
+                </span>
+              </div>
+            </a>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- COLONNE DROITE : Actions & Alertes -->
+    <div class="actions-column">
+      
+      <!-- Action Center (Profil incomplet) -->
+      @if (profileMissing()) {
+        <div class="action-card highlight-warning">
+          <div class="action-header">
+            <div class="action-title">
+              <mat-icon class="pulse-icon">warning</mat-icon>
+              <span>Profil incomplet</span>
+            </div>
+          </div>
+          <p class="action-desc">Complétez vos informations pour pouvoir réserver plus rapidement.</p>
+          <a routerLink="/clients/me" class="btn-primary w-full">Compléter mon profil</a>
+        </div>
+      }
+
+      <!-- Action Center (Réservations à payer) -->
+      @if (aPayer() > 0) {
+        <div class="action-card highlight-danger">
+          <div class="action-header">
+            <div class="action-title">
+              <mat-icon class="pulse-icon-red">notification_important</mat-icon>
+              <span>À régler</span>
+            </div>
+            <span class="action-badge">{{ aPayer() }}</span>
+          </div>
+          <p class="action-desc">Vous avez {{ aPayer() }} réservation(s) en attente de paiement.</p>
+          <a routerLink="/reservations" class="btn-outline-danger w-full">Payer maintenant</a>
+        </div>
+      }
+
+      <!-- Recherche / Raccourcis -->
+      <div class="search-card">
+        <div class="search-icon"><mat-icon>search</mat-icon></div>
+        <h3>Où allez-vous ?</h3>
+        <p>Trouvez un trajet et réservez votre place en quelques clics.</p>
+        <a routerLink="/reservations/search" class="btn-primary w-full">Rechercher un voyage</a>
+      </div>
+
+      <!-- Raccourcis rapides -->
+      <div class="quick-links-card">
+        <h3>Accès rapides</h3>
+        <div class="quick-links-grid">
+          <a routerLink="/reservations" class="quick-link">
+            <div class="quick-icon"><mat-icon>assignment</mat-icon></div>
+            <span>Mes réservations</span>
+          </a>
+          <a routerLink="/clients/me" class="quick-link">
+            <div class="quick-icon"><mat-icon>person</mat-icon></div>
+            <span>Mon profil</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

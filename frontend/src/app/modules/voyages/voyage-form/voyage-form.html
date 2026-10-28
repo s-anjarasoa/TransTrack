@@ -1,0 +1,151 @@
+<div class="modal-backdrop" (click)="cancel()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-icon"><mat-icon>event</mat-icon></div>
+        <div>
+          <h2 class="modal-title">{{ isEditMode() ? 'Modifier le voyage' : 'Planifier un voyage' }}</h2>
+          <p class="modal-subtitle">Définissez l'itinéraire et l'équipage</p>
+        </div>
+      </div>
+      <button type="button" class="btn-close" (click)="cancel()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
+      
+      <!-- SECTION 1 : Itinéraire & Véhicule -->
+      <div class="form-section">
+        <h3 class="section-title"><span class="section-num">1</span> Itinéraire & Véhicule</h3>
+        <div class="grid-2">
+          
+          <div class="field form-field-full">
+            <label>Type de transport</label>
+            <select class="input" (change)="setTypeFilter($event)">
+              <option value="">Tous les types</option>
+              @for (t of typeOptions; track t) {
+                <option [value]="t">{{ typeLabel(t) }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Route *</label>
+            <select formControlName="routeId" class="input">
+              <option [ngValue]="null" disabled>Choisir une route...</option>
+              @for (r of routesFiltrees(); track r.id) {
+                <option [ngValue]="r.id">{{ r.depart }} → {{ r.arrivee }}</option>
+              }
+            </select>
+          </div>
+          
+          <div class="field">
+            <label>Véhicule *</label>
+            <select formControlName="vehiculeId" class="input">
+              <option [ngValue]="null" disabled>Choisir un véhicule...</option>
+              @for (v of filteredVehicules(); track v.id) {
+                <option [ngValue]="v.id">{{ v.immatriculation }} ({{ v.capacite }} places)</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- ✅ CARTE : Info Véhicule, Tarification & Prix -->
+        @if (selectedVehicule(); as v) {
+          <div class="vehicle-info-card">
+            <div class="info-row">
+              <mat-icon>airline_seat_recline_normal</mat-icon>
+              <span>Capacité totale : <strong>{{ v.capacite }}</strong> places</span>
+            </div>
+            
+            <!-- Select pour la catégorie -->
+            @if (categorieOptions().length > 0) {
+              <div class="field" style="margin-top: 1rem;">
+                <label>Mode de tarification *</label>
+                <select formControlName="modeTarification" class="input">
+                  @for (opt of categorieOptions(); track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            } @else {
+              <div class="alert-error" style="margin-top: 1rem; color: #EF4444; font-size: 0.85rem;">
+                Aucun tarif (Économie ou Classe) n'est configuré pour cette route.
+              </div>
+            }
+
+            <!-- Affichage des prix si pas Mixte -->
+            @if (categorieOptions().length > 0 && !isModeMixte()) {
+              <div class="price-preview" style="margin-top: 1rem; background: white; border: 1px solid #E2E8F0; border-radius: 10px; padding: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: #64748B; font-weight: 600;">Tarif appliqué :</span>
+                  <strong style="font-size: 1.1rem; color: #0F172A;">
+                    {{ prixActuel() | number:'1.0-0' }} Ar
+                    @if (isPromoActive()) {
+                      <span style="color: #10B981; font-size: 0.75rem; margin-left: 4px; font-weight: 700;">(Promo)</span>
+                    }
+                  </strong>
+                </div>
+              </div>
+            }
+
+            <!-- Places Classe si Mixte -->
+            @if (isModeMixte()) {
+              <div class="mixte-split" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #E2E8F0;">
+                <div class="field">
+                  <label>Places réservées en Classe</label>
+                  <input 
+                    type="number" 
+                    formControlName="placesClasse" 
+                    class="input" 
+                    [max]="v.capacite"
+                    min="0"
+                  >
+                </div>
+                <div class="split-info" style="margin-left: 1rem;">
+                  <span>Reste en Économie : <strong>{{ v.capacite - (form.get('placesClasse')?.value || 0) }}</strong> places</span>
+                  <small>30% suggéré par défaut</small>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="vehicle-info-placeholder" style="display: flex; align-items: center; gap: 10px; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 12px; padding: 1.5rem; margin-top: 1rem; color: #64748B; font-size: 0.9rem;">
+            <mat-icon style="color: #94A3B8;">info</mat-icon>
+            <p style="margin: 0;">Veuillez sélectionner une route et un véhicule pour voir les options de tarification.</p>
+          </div>
+        }
+      </div>
+
+      <!-- SECTION 2 : Horaires & Équipage -->
+      <div class="form-section">
+        <h3 class="section-title"><span class="section-num">2</span> Horaires & Équipage</h3>
+        <div class="grid-2">
+          <div class="field">
+            <label>Départ *</label>
+            <input type="datetime-local" formControlName="dateDepart" class="input">
+          </div>
+          <div class="field">
+            <label>Arrivée *</label>
+            <input type="datetime-local" formControlName="dateArrivee" class="input">
+          </div>
+          <div class="field form-field-full">
+            <label>Chauffeur</label>
+            <select formControlName="chauffeurId" class="input">
+              <option [ngValue]="null">Aucun chauffeur assigné</option>
+              @for (c of chauffeurs(); track c.id) {
+                <option [ngValue]="c.id">{{ c.user?.firstName }} {{ c.user?.lastName }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="cancel()">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="submitting()">
+          {{ submitting() ? 'Enregistrement...' : 'Valider le voyage' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

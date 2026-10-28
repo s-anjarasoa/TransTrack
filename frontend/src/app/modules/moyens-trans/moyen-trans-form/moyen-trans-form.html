@@ -1,0 +1,128 @@
+<div class="modal-backdrop">
+  <div class="modal-card">
+
+    <!-- HEADER -->
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-icon" [class.modal-icon-edit]="isEditMode()">
+          <svg class="icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            @if (isEditMode()) {
+              <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" stroke-linecap="round" stroke-linejoin="round"/>
+            } @else {
+              <line x1="12" y1="5" x2="12" y2="19" stroke-linecap="round"/>
+              <line x1="5" y1="12" x2="19" y2="12" stroke-linecap="round"/>
+            }
+          </svg>
+        </div>
+        <div>
+          <h2 class="modal-title">
+            {{ isEditMode() ? 'Modifier le moyen de transport' : 'Nouveau moyen de transport' }}
+          </h2>
+          <p class="modal-subtitle">
+            {{ isEditMode() ? 'Modifiez les informations ci-dessous' : 'Remplissez les informations ci-dessous' }}
+          </p>
+        </div>
+      </div>
+
+      <button type="button" class="btn-close" (click)="cancel()" aria-label="Fermer">
+        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/>
+          <line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- LOADING -->
+    @if (checking()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement des données...</p>
+      </div>
+    } @else {
+
+      <!-- FORM -->
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
+
+        <!-- Section 1 : Type -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="section-num">1</span>
+            Type de transport
+          </h3>
+          <div class="field">
+            <label for="type">Type <span class="req">*</span></label>
+            <select id="type" formControlName="type" class="input"
+              [class.input-error]="form.get('type')?.invalid && form.get('type')?.touched">
+              @for (t of typeOptions; track t) {
+                <option [value]="t">{{ typeLabel(t) }}</option>
+              }
+            </select>
+            @if (form.get('type')?.hasError('required') && form.get('type')?.touched) {
+              <p class="field-error">Le type est requis</p>
+            }
+          </div>
+        </div>
+
+        <!-- Section 2 : Informations -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="section-num">2</span>
+            Informations
+          </h3>
+
+          <div class="field">
+            <label for="nom">Nom <span class="req">*</span></label>
+            <input id="nom" type="text" formControlName="nom" class="input"
+              placeholder="Ex: Bus Express"
+              [class.input-error]="form.get('nom')?.invalid && form.get('nom')?.touched" />
+            @if (form.get('nom')?.hasError('required') && form.get('nom')?.touched) {
+              <p class="field-error">Le nom est requis</p>
+            }
+          </div>
+
+          <div class="field">
+            <label for="description">Description</label>
+            <textarea id="description" formControlName="description"
+              class="input textarea" placeholder="Décrivez ce moyen de transport (optionnel)"></textarea>
+          </div>
+        </div>
+
+        <!-- Erreur API -->
+        @if (errorMessage()) {
+          <div class="error-banner">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Actions -->
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="cancel()">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/>
+              <line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/>
+            </svg>
+            <span>Annuler</span>
+          </button>
+
+          <button type="submit" class="btn-primary" [disabled]="loading()">
+            @if (loading()) {
+              <span>Enregistrement...</span>
+            } @else {
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke-linecap="round"/>
+                <polyline points="17 21 17 13 7 13 7 21" stroke-linecap="round"/>
+                <polyline points="7 3 7 8 15 8" stroke-linecap="round"/>
+              </svg>
+              <span>{{ isEditMode() ? 'Enregistrer' : 'Créer' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

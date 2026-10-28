@@ -1,0 +1,29 @@
+@if (isOpen) {
+  <div class="modal-backdrop">
+    <div class="modal-dialog">
+      <h3 class="modal-title">Code d'invitation requis</h3>
+      <p class="modal-desc">Saisissez le code fourni par votre société pour valider votre compte Agent.</p>
+
+      <div class="field">
+        <input
+          type="text"
+          class="input"
+          placeholder="Ex: SOC-2026-XYZ"
+          [ngModel]="code()"
+          (ngModelChange)="code.set($event)"
+        />
+      </div>
+
+      @if (errorMessage) {
+        <p class="field-error">{{ errorMessage }}</p>
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="close()">Annuler</button>
+        <button type="button" class="btn-submit" [disabled]="loading || !code().trim()" (click)="submitCode()">
+          @if (loading) { Validating... } @else { Confirmer }
+        </button>
+      </div>
+    </div>
+  </div>
+}

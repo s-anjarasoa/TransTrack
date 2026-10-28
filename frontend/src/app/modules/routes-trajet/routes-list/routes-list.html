@@ -1,0 +1,310 @@
+<div class="page">
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- HEADER                                                   -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1 class="page-title">Les itinéraires</h1>
+      <p class="page-subtitle">
+        Routes desservies par votre société
+      </p>
+    </div>
+
+    <div class="page-header-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="refresh()"
+        [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+        <span>Actualiser</span>
+      </button>
+
+      @if (canManage()) {
+        <a routerLink="/routes/new" class="btn-primary">
+          <mat-icon>add</mat-icon>
+          <span>Nouvelle route</span>
+        </a>
+      }
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- KPI CARDS                                                -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>alt_route</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats().total }}</span>
+        <span class="stat-label">Itinéraires</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-success">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value stat-value-success">{{ stats().actives }}</span>
+        <span class="stat-label">Actifs</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-warning">
+        <mat-icon>pause_circle</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value stat-value-inactive">{{ stats().inactives }}</span>
+        <span class="stat-label">Inactifs</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-danger">
+        <mat-icon>cancel</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value stat-value-suspendu">{{ stats().suspendues }}</span>
+        <span class="stat-label">Suspendus</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- TOOLBAR                                                  -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="toolbar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Rechercher une ville, un trajet..."
+        [value]="searchTerm()"
+        (input)="onSearch($event)"
+      />
+      @if (searchTerm()) {
+        <button type="button" class="search-clear" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+
+    <div class="chip-row">
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === ''"
+        (click)="setFilter('')">
+        Tous
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === RouteStatut.ACTIVE"
+        (click)="setFilter(RouteStatut.ACTIVE)">
+        Actifs
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === RouteStatut.INACTIVE"
+        (click)="setFilter(RouteStatut.INACTIVE)">
+        Inactifs
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.filter-chip-active]="statutFilter() === RouteStatut.SUSPENDUE"
+        (click)="setFilter(RouteStatut.SUSPENDUE)">
+        Suspendus
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LISTE                                                    -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des itinéraires...</p>
+    </div>
+  } @else if (routes().length > 0) {
+    <div class="route-list">
+      @for (r of pagedRoutes(); track r.id) {
+        <div
+          class="route-card"          
+          (click)="goToDetail(r, $event)">
+
+          <!-- ── Ligne du trajet ── -->
+          <div class="route-path">
+            <div class="path-point">
+              <span class="path-dot path-dot-start"></span>
+              <div class="path-info">
+                <span class="path-label">Départ</span>
+                <span class="path-city">{{ r.depart }}</span>
+              </div>
+            </div>
+
+            <div class="path-line">
+              <div class="path-track">
+                <mat-icon class="path-icon">arrow_forward</mat-icon>
+              </div>
+              @if (r.distance) {
+                <span class="path-distance">{{ r.distance }} km</span>
+              }
+            </div>
+
+            <div class="path-point">
+              <span class="path-dot path-dot-end"></span>
+              <div class="path-info">
+                <span class="path-label">Arrivée</span>
+                <span class="path-city">{{ r.arrivee }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Nom personnalisé (si présent) ── -->
+          @if (r.nom) {
+            <div class="route-title">{{ r.nom }}</div>
+          }
+
+          <!-- ── Meta chips ── -->
+          <div class="route-meta">
+            @if (r.moyenTrans?.nom) {
+              <span class="meta-chip">
+                <mat-icon>{{ getMoyenTransIcon(r.moyenTrans?.nom) }}</mat-icon>
+                {{ r.moyenTrans?.nom }}
+              </span>
+            }
+            @if (r.dureeEstimee) {
+              <span class="meta-chip">
+                <mat-icon>schedule</mat-icon>
+                {{ formatDuree(r.dureeEstimee) }}
+              </span>
+            }
+            @if (r.stops.length) {
+              <span class="meta-chip">
+                <mat-icon>place</mat-icon>
+                {{ r.stops.length }} étapes
+              </span>
+            }
+          </div>
+
+          <!-- ── Actions + statut ── -->
+          <div class="route-actions-row">
+            <span class="status-chip" [class]="statutMeta(r.statut).cls">
+              <span class="status-dot" [class]="statutMeta(r.statut).dot"></span>
+              {{ statutMeta(r.statut).label }}
+            </span>
+
+            <div class="route-buttons">
+
+              <!-- ✅ Voir (toujours disponible) -->
+              <a
+                [routerLink]="['/routes', r.id]"
+                class="btn-icon btn-icon-view"
+                matTooltip="Voir le détail"
+                (click)="$event.stopPropagation()">
+                <mat-icon>visibility</mat-icon>
+              </a>
+
+              @if (canManage()) {
+                <select
+                  class="statut-select"
+                  [ngModel]="r.statut"
+                  (ngModelChange)="onStatutSelect(r, $event, $event)"
+                  [disabled]="actionLoadingId() === r.id"
+                  (click)="$event.stopPropagation()">
+                  <option [value]="RouteStatut.ACTIVE">Active</option>
+                  <option [value]="RouteStatut.INACTIVE">Inactive</option>
+                  <option [value]="RouteStatut.SUSPENDUE">Suspendue</option>
+                </select>
+
+                <a
+                  [routerLink]="['/routes', r.id, 'edit']"
+                  class="btn-icon btn-icon-edit"
+                  matTooltip="Modifier"
+                  (click)="$event.stopPropagation()">
+                  <mat-icon>edit</mat-icon>
+                </a>
+
+                <button
+                  type="button"
+                  class="btn-icon btn-icon-danger"
+                  [disabled]="actionLoadingId() === r.id"
+                  (click)="remove(r, $event)"
+                  matTooltip="Supprimer">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- PAGINATION                                          -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button
+          type="button"
+          class="page-nav-btn"
+          [disabled]="currentPage() === 1"
+          (click)="previousPage()"
+          aria-label="Page précédente">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <span class="page-indicator">
+          Page <strong>{{ currentPage() }}</strong> sur
+          <strong>{{ totalPages() }}</strong>
+        </span>
+
+        <button
+          type="button"
+          class="page-nav-btn"
+          [disabled]="currentPage() === totalPages()"
+          (click)="nextPage()"
+          aria-label="Page suivante">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+
+        <span class="page-range">{{ rangeText() }}</span>
+      </div>
+    }
+  } @else {
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- EMPTY STATE                                          -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="empty-state">
+      <mat-icon class="empty-icon">route</mat-icon>
+      <h3>Aucun itinéraire trouvé</h3>
+      <p>
+        @if (hasActiveFilters()) {
+          Essayez de modifier vos filtres.
+        } @else {
+          Créez votre premier trajet pour commencer à planifier des voyages.
+        }
+      </p>
+      @if (hasActiveFilters()) {
+        <button class="btn-secondary" (click)="resetFilters()">
+          Réinitialiser les filtres
+        </button>
+      } @else if (canManage()) {
+        <a routerLink="/routes/new" class="btn-primary">
+          <mat-icon>add</mat-icon>
+          Créer un itinéraire
+        </a>
+      }
+    </div>
+  }
+</div>

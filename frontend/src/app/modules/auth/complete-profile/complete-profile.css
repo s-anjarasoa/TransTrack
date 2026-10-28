@@ -1,0 +1,314 @@
+/* ============================================================
+   LAYOUT GLOBAL
+   ============================================================ */
+.page-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: #F9FAFB;
+}
+
+.card-shell {
+  display: flex;
+  width: 100%;
+  max-width: 1100px;
+  min-height: 700px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: white;
+  box-shadow:
+    0 20px 40px -12px rgba(0, 188, 212, 0.15),
+    0 8px 24px -8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 188, 212, 0.1);
+}
+
+/* ============================================================
+   PANNEAU GAUCHE - BRANDING
+   ============================================================ */
+.branding-panel {
+  display: none;
+  width: 40%;
+  padding: 3rem;
+  background: linear-gradient(160deg, #01202e 0%, #076c79 50%, #126d79 100%);
+  position: relative;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .branding-panel { display: flex; }
+}
+
+.branding-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+}
+
+.logo-circle {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.logo-circle mat-icon { font-size: 24px; height: 24px; width: 24px; }
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.02em;
+}
+
+.logo-subtitle {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(207, 250, 254, 0.8);
+  letter-spacing: 0.05em;
+}
+
+.branding-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.branding-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.03em;
+}
+
+.branding-highlight {
+  background: linear-gradient(90deg, #67E8F9, #22D3EE);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.branding-desc {
+  font-size: 1.05rem;
+  color: rgba(207, 250, 254, 0.9);
+  line-height: 1.6;
+  max-width: 320px;
+  margin: 0 0 2.5rem 0;
+}
+
+/* ============================================================
+   INDICATEUR D'ÉTAPES
+   ============================================================ */
+.steps-indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.5rem 0;
+}
+
+.step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.step.active .step-num {
+  background: #67E8F9;
+  color: #01202e;
+  border-color: #67E8F9;
+  box-shadow: 0 0 0 4px rgba(103, 232, 249, 0.25);
+}
+
+.step.done .step-num {
+  background: #10B981;
+  color: white;
+  border-color: #10B981;
+}
+
+.step-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.step.active .step-label { color: white; font-weight: 600; }
+.step.done .step-label { color: rgba(255, 255, 255, 0.85); }
+
+/* ============================================================
+   PANNEAU DROIT
+   ============================================================ */
+.form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: white;
+  overflow-y: auto;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 480px;
+}
+
+.step-content {
+  animation: slideIn 0.35s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ============================================================
+   HEADER ÉTAPE
+   ============================================================ */
+.step-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.step-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.step-badge mat-icon { font-size: 28px; height: 28px; width: 28px; }
+.badge-code { background: #DCFCE7; color: #16A34A; }
+
+.step-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.step-subtitle {
+  font-size: 0.95rem;
+  color: #64748B;
+  margin: 0;
+}
+
+/* ============================================================
+   TABS MATERIAL
+   ============================================================ */
+.profile-tabs { margin-top: 0.5rem; }
+
+.profile-tabs ::ng-deep .mat-mdc-tab-labels { justify-content: center; }
+
+.profile-tabs ::ng-deep .mat-mdc-tab {
+  min-width: 140px;
+  height: 56px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.profile-tabs ::ng-deep .mat-mdc-tab .mat-icon {
+  margin-right: 0.5rem;
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
+}
+
+.tab-icon {
+  font-size: 20px !important;
+  height: 20px !important;
+  width: 20px !important;
+}
+
+/* ============================================================
+   CODE D'INVITATION
+   ============================================================ */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  color: #64748B;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.back-btn:hover { color: #0F172A; background: #F1F5F9; }
+
+.info-card {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  color: #1E40AF;
+}
+
+.info-card mat-icon { color: #3B82F6; flex-shrink: 0; }
+
+.info-card strong { font-size: 0.9rem; display: block; margin-bottom: 0.15rem; }
+.info-card p { font-size: 0.8rem; margin: 0; opacity: 0.9; }
+
+.input-code {
+  text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.15em;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px) {
+  .field-row { grid-template-columns: 1fr; }
+  .card-shell { border-radius: 16px; }
+  .page-wrap { padding: 1rem; }
+  .form-panel { padding: 1.5rem 1rem; }
+}

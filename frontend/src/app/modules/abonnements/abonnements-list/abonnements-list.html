@@ -1,0 +1,145 @@
+<div class="page">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1 class="page-title">
+        <span class="page-title-icon"><mat-icon>card_membership</mat-icon></span>
+        Gestion des Abonnements
+      </h1>
+      <p class="page-subtitle">Suivi des abonnements des sociétés de la plateforme</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des abonnements...</p>
+    </div>
+  } @else {
+
+    <!-- ✅ KPI STRIP -->
+    <div class="stat-strip">
+      <div class="stat-tile">
+        <div class="stat-icon-wrapper"><mat-icon>list_alt</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().total }}</span>
+          <span class="stat-lbl">Total</span>
+        </div>
+      </div>
+      <div class="stat-tile stat-tile-success">
+        <div class="stat-icon-wrapper"><mat-icon>check_circle</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().actifs }}</span>
+          <span class="stat-lbl">Actifs</span>
+        </div>
+      </div>
+      <div class="stat-tile stat-tile-danger">
+        <div class="stat-icon-wrapper"><mat-icon>cancel</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().expires }}</span>
+          <span class="stat-lbl">Expirés</span>
+        </div>
+      </div>
+      <div class="stat-tile stat-tile-info">
+        <div class="stat-icon-wrapper"><mat-icon>pending_actions</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().attente }}</span>
+          <span class="stat-lbl">En attente</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ TOOLBAR (RECHERCHE & FILTRES) -->
+    <div class="toolbar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Rechercher une société ou un directeur..." 
+          [value]="searchTerm()" 
+          (input)="searchTerm.set($any($event.target).value)"
+        />
+        @if (searchTerm()) {
+          <button type="button" class="search-clear" (click)="searchTerm.set('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+
+      <div class="chip-row">
+        <button class="filter-chip" [class.filter-chip-active]="typeFilter() === ''" (click)="typeFilter.set('')">Tous types</button>
+        <button class="filter-chip" [class.filter-chip-active]="typeFilter() === AbonnementType.MENSUEL" (click)="typeFilter.set(AbonnementType.MENSUEL)">Mensuel</button>
+        <button class="filter-chip" [class.filter-chip-active]="typeFilter() === AbonnementType.ANNUELLE" (click)="typeFilter.set(AbonnementType.ANNUELLE)">Annuel</button>
+        
+        <div class="chip-separator"></div>
+
+        <button class="filter-chip" [class.filter-chip-active]="statutFilter() === ''" (click)="statutFilter.set('')">Tous</button>
+        <button class="filter-chip" [class.filter-chip-active]="statutFilter() === 'ACTIF'" (click)="statutFilter.set('ACTIF')">Actifs</button>
+        <button class="filter-chip" [class.filter-chip-active]="statutFilter() === 'EXPIRE'" (click)="statutFilter.set('EXPIRE')">Expirés</button>
+      </div>
+    </div>
+
+    <!-- ✅ TABLEAU -->
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Société</th>
+            <th>Directeur</th>
+            <th>Type</th>
+            <th>Début</th>
+            <th>Expiration</th>
+            <th>Statut</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of filteredAbonnements(); track a.id) {
+            <tr>
+              <td class="cell-strong">
+                <a [routerLink]="['/societes', a.societeId]" class="link-name">
+                  {{ a.societe?.name || 'Société #' + a.societeId }}
+                </a>
+              </td>
+              <td>
+                {{ getDirecteurName(a) }}
+              </td>
+              <td>
+                <span class="type-badge" [class.type-annuel]="a.type === AbonnementType.ANNUELLE">
+                  {{ getTypeLabel(a.type) }}
+                </span>
+              </td>
+              <td>{{ a.dateDebut ? (a.dateDebut | date:'dd/MM/yyyy') : '—' }}</td>
+              <td>
+                <div class="date-cell">
+                  {{ a.dateFin ? (a.dateFin | date:'dd/MM/yyyy') : '—' }}
+                  @if (isExpiringSoon(a)) {
+                    <span class="expire-alert">Expire bientôt</span>
+                  }
+                </div>
+              </td>
+              <td>
+                <span class="badge" [class]="getStatusLabel(a).cls">
+                  {{ getStatusLabel(a).label }}
+                </span>
+              </td>
+              <td class="text-right">
+                <a [routerLink]="['/societes', a.societeId]" class="btn-icon" matTooltip="Voir la société">
+                  <mat-icon>visibility</mat-icon>
+                </a>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="cell-empty">
+                <mat-icon class="empty-icon">search_off</mat-icon>
+                <p>Aucun abonnement trouvé</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

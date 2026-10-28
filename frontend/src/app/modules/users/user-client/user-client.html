@@ -1,0 +1,47 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
+  <div class="form-grid">
+    
+    <div class="field">
+      <label for="address">Address <span class="required">*</span></label>
+      <input id="address" type="text" formControlName="address" class="input" placeholder="Ex: Lot II B 12, Antananarivo" />
+      @if (form.get('address')?.invalid && form.get('address')?.touched) {
+        <p class="field-error">L'adresse est requise (max 255 caractères).</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="CIN">CIN <span class="required">*</span></label>
+      <input id="CIN" type="text" formControlName="CIN" class="input" placeholder="Ex: 101012345678" />
+      @if (form.get('CIN')?.invalid && form.get('CIN')?.touched) {
+        <p class="field-error">Le CIN est requis (8 à 20 caractères).</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="phone">Phone <span class="required">*</span></label>
+      <input id="phone" type="tel" formControlName="phone" class="input" placeholder="Ex: +261340012345" />
+      @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
+        <p class="field-error">Numéro de téléphone valide requis.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="passport">Passeport <span class="required">*</span></label>
+      <input id="passport" type="text" formControlName="passport" class="input" placeholder="Ex: A0012345" />
+      @if (form.get('passport')?.invalid && form.get('passport')?.touched) {
+        <p class="field-error">Le passeport est requis.</p>
+      }
+    </div>
+
+  </div>
+
+  @if (errorMessage) {
+    <div class="error-banner">{{ errorMessage }}</div>
+  }
+
+  <div class="form-actions">
+    <button type="submit" class="btn-confirm" [disabled]="loading">
+      {{ loading ? 'Chargement...' : 'Confirmer' }}
+    </button>
+  </div>
+</form>

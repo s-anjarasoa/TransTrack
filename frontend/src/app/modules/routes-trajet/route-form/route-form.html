@@ -1,0 +1,231 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        {{ isEdit() ? 'Modifier la route' : 'Nouvelle route' }}
+      </h1>
+      <p class="page-subtitle">
+        Définissez les étapes de l'itinéraire — la distance sera calculée automatiquement
+      </p>
+    </div>
+    <a routerLink="/routes" class="btn-secondary">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Retour</span>
+    </a>
+  </div>
+
+  <div class="form-layout">
+    <!-- ═══════════ FORMULAIRE ═══════════ -->
+    <div class="form-card">
+      @if (errorMessage()) {
+        <div class="alert-error">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Infos générales -->
+      <section class="form-section">
+        <h2 class="section-title">
+          <mat-icon>info</mat-icon> Informations générales
+        </h2>
+
+        <div class="form-grid">
+          <div class="form-field form-field-full">
+            <label>Nom de la route <small>(optionnel)</small></label>
+            <input
+              type="text"
+              [value]="nom()"
+              (input)="nom.set($any($event.target).value)"
+              placeholder="Ex: Express Tanà-Tamatave"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Moyen de transport *</label>
+            <select
+              [value]="moyenTransId() ?? ''"
+              (change)="moyenTransId.set(+$any($event.target).value)"
+            >
+              <option value="">-- Choisir --</option>
+              @for (m of moyensTrans(); track m.id) {
+                <option [value]="m.id">{{ m.nom }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Durée estimée (min)</label>
+            <input
+              type="number"
+              min="1"
+              [value]="dureeEstimee() ?? ''"
+              (input)="dureeEstimee.set(+$any($event.target).value || null)"
+              placeholder="Ex: 480"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Statut</label>
+            <select
+              [value]="statut()"
+              (change)="statut.set($any($event.target).value)"
+            >
+              @for (s of statutOptions; track s) {
+                <option [value]="s">{{ statutLabel(s) }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field form-field-full">
+            <label>Description</label>
+            <textarea
+              rows="2"
+              [value]="description()"
+              (input)="description.set($any($event.target).value)"
+              placeholder="Notes internes..."
+            ></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Étapes -->
+      <section class="form-section">
+        <h2 class="section-title">
+          <mat-icon>alt_route</mat-icon>
+          Étapes de l'itinéraire
+          <span class="stop-count">{{ stops().length }} étape(s)</span>
+        </h2>
+
+        <div class="stops-list">
+          @for (stop of stops(); track trackByStop($index, stop); let i = $index) {
+            <div class="stop-row" [class.stop-depart]="i === 0"
+                                  [class.stop-arrivee]="i === stops().length - 1">
+              <!-- Badge de type -->
+              <div class="stop-badge" [class.badge-depart]="i === 0"
+                                       [class.badge-arrivee]="i === stops().length - 1"
+                                       [class.badge-inter]="i > 0 && i < stops().length - 1">
+                @if (i === 0) {
+                  <mat-icon>trip_origin</mat-icon>
+                } @else if (i === stops().length - 1) {
+                  <mat-icon>place</mat-icon>
+                } @else {
+                  <span>{{ i }}</span>
+                }
+              </div>
+
+              <!-- Autocomplete -->
+              <div class="stop-input">
+                <app-location-autocomplete
+                  [label]="stopTypeLabel(i)"
+                  [value]="stop.location"
+                  (locationSelected)="onLocationSelected(i, $event)"
+                />
+              </div>
+
+              <!-- Actions -->
+              <div class="stop-actions">
+                @if (i > 1) {
+                  <button type="button" class="icon-btn"
+                    matTooltip="Monter"
+                    (click)="moveStopUp(i)">
+                    <mat-icon>arrow_upward</mat-icon>
+                  </button>
+                }
+                @if (i > 0 && i < stops().length - 1) {
+                  <button type="button" class="icon-btn"
+                    matTooltip="Descendre"
+                    (click)="moveStopDown(i)">
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                }
+                @if (i > 0 && i < stops().length - 1) {
+                  <button type="button" class="icon-btn icon-danger"
+                    matTooltip="Supprimer"
+                    (click)="removeStop(i)">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Connecteur visuel -->
+            @if (i < stops().length - 1) {
+              <div class="stop-connector">
+                <div class="connector-line"></div>
+              </div>
+            }
+          }
+        </div>
+
+        <button type="button" class="btn-add-stop"
+          [disabled]="!canAddStop()"
+          (click)="addStop()">
+          <mat-icon>add</mat-icon>
+          Ajouter une étape intermédiaire
+        </button>
+      </section>
+
+      <!-- Aperçu calcul -->
+      @if (estimatedDistance() !== null) {
+        <section class="summary">
+          <div class="summary-row">
+            <mat-icon>straighten</mat-icon>
+            <span>Distance calculée :</span>
+            <strong>{{ estimatedDistance() }} km</strong>
+          </div>
+          <div class="summary-hint">
+            ⓘ Calcul via formule de Haversine entre les coordonnées GPS des étapes
+          </div>
+        </section>
+      }
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-secondary"
+          (click)="cancel()"
+          [disabled]="submitting()">
+          Annuler
+        </button>
+        <button type="button" class="btn-primary"
+          (click)="submit()"
+          [disabled]="submitting()">
+          <mat-icon>save</mat-icon>
+          {{ isEdit() ? 'Mettre à jour' : 'Créer la route' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════════ APERÇU ═══════════ -->
+    <div class="preview-card">
+      <h2 class="section-title">
+        <mat-icon>map</mat-icon> Aperçu de l'itinéraire
+      </h2>
+
+      <div class="preview-timeline">
+        @for (stop of filledStops(); track stop.tempId; let i = $index) {
+          <div class="timeline-item">
+            <div class="timeline-dot"
+              [class.dot-start]="i === 0"
+              [class.dot-end]="i === filledStops().length - 1">
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-name">{{ stop.location!.name }}</div>
+              <div class="timeline-meta">
+                {{ stop.location!.province }}
+                @if (stop.location!.region) { · {{ stop.location!.region }} }
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (filledStops().length < 2) {
+          <div class="preview-empty">
+            <mat-icon>route</mat-icon>
+            <p>Remplissez au moins 2 étapes<br>pour voir l'itinéraire</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

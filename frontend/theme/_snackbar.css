@@ -1,0 +1,28 @@
+.toast {
+  --mdc-snackbar-container-color: #0F172A;
+  --mat-snack-bar-container-color: #0F172A;
+  --mdc-snackbar-supporting-text-color: #FFFFFF;
+  --mat-snack-bar-supporting-text-color: #FFFFFF;
+  --mat-snack-bar-button-color: #67E8F9;
+  --mat-text-button-label-text-color: #67E8F9;
+}
+
+.toast-success {
+  --mdc-snackbar-container-color: #065F46;
+  --mat-snack-bar-container-color: #065F46;
+}
+
+.toast-error {
+  --mdc-snackbar-container-color: #991B1B;
+  --mat-snack-bar-container-color: #991B1B;
+}
+
+.toast-warning {
+  --mdc-snackbar-container-color: #92400E;
+  --mat-snack-bar-container-color: #92400E;
+}
+
+.toast-info {
+  --mdc-snackbar-container-color: #0E7490;
+  --mat-snack-bar-container-color: #0E7490;
+}

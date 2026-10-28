@@ -1,0 +1,48 @@
+<div class="pie-container">
+  <div class="pie-svg-wrapper">
+    <svg viewBox="0 0 32 32" class="pie-ring">
+      <circle r="16" cx="16" cy="16" class="pie-bg" />
+      @for (segment of getSegments(); track segment.label) {
+        <circle
+          r="16"
+          cx="16"
+          cy="16"
+          class="pie-segment"
+          [style.stroke]="segment.color"
+          [style.stroke-dasharray]="segment.dashArray"
+          [style.stroke-dashoffset]="segment.dashOffset"
+          [class.active]="hoveredItem()?.label === segment.label"
+          (mouseenter)="onHover(segment)"
+          (mouseleave)="onHover(null)"
+        />
+      }
+    </svg>
+    <div class="pie-center-text">
+      @if (hoveredItem(); as hovered) {
+        <span class="pie-hover-val" [style.color]="hovered.color">{{ hovered.value }}</span>
+        <span class="pie-hover-lbl">{{ hovered.label }}</span>
+      } @else {
+        <span class="pie-total-val">{{ total }}</span>
+        <span class="pie-total-lbl">Total</span>
+      }
+    </div>
+  </div>
+
+  <div class="pie-legend">
+    @for (item of getSegments(); track item.label) {
+      <div 
+        class="legend-item" 
+        [class.legend-active]="hoveredItem()?.label === item.label"
+        (mouseenter)="onHover(item)"
+        (mouseleave)="onHover(null)"
+      >
+        <span class="legend-dot" [style.background]="item.color"></span>
+        <span class="legend-label">{{ item.label }}</span>
+        <div class="legend-stats">
+          <span class="legend-value">{{ item.value }}</span>
+          <span class="legend-percent">({{ item.percent }}%)</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>

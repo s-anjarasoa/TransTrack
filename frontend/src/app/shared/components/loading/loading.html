@@ -1,0 +1,10 @@
+@if (loadingService.isLoading()) {
+  <div class="loading-overlay">
+    <div class="loading-card">
+      <mat-spinner diameter="56" color="primary"></mat-spinner>
+      @if (loadingService.message()) {
+        <p class="loading-message">{{ loadingService.message() }}</p>
+      }
+    </div>
+  </div>
+}

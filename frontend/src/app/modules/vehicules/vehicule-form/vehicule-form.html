@@ -1,0 +1,293 @@
+<div class="modal-backdrop" (click)="cancel()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-icon" [class.modal-icon-edit]="isEditMode()">
+          <mat-icon>{{ isEditMode() ? 'edit' : 'directions_car' }}</mat-icon>
+        </div>
+        <div>
+          <h2 class="modal-title">
+            {{ isEditMode() ? 'Modifier le véhicule' : 'Nouveau véhicule' }}
+          </h2>
+          <p class="modal-subtitle">
+            {{ isEditMode()
+              ? 'Modifiez les informations ci-dessous'
+              : 'Enregistrez un nouveau véhicule dans votre flotte' }}
+          </p>
+        </div>
+      </div>
+      <button type="button" class="btn-close" (click)="cancel()" aria-label="Fermer">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- ============================================================
+         LOADING
+         ============================================================ -->
+    @if (checking()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement des données...</p>
+      </div>
+    } @else {
+
+      <!-- ============================================================
+           FORM
+           ============================================================ -->
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
+
+        <!-- ============ Section 1 : Identification ============ -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="section-num">1</span>
+            Identification
+          </h3>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="immatriculation">
+                Immatriculation <span class="req">*</span>
+              </label>
+              <input
+                id="immatriculation"
+                type="text"
+                formControlName="immatriculation"
+                class="input uppercase"
+                placeholder="Ex: 1234 TAA"
+                [class.input-error]="form.get('immatriculation')?.invalid && form.get('immatriculation')?.touched"
+              />
+              @if (form.get('immatriculation')?.hasError('required') && form.get('immatriculation')?.touched) {
+                <p class="field-error">L'immatriculation est requise</p>
+              }
+            </div>
+
+            <!-- ✅ Moyen de transport avec aperçu -->
+            <div class="field">
+              <label for="moyenTransId">
+                Moyen de transport <span class="req">*</span>
+              </label>
+              <select
+                id="moyenTransId"
+                formControlName="moyenTransId"
+                class="input"
+                [class.input-error]="form.get('moyenTransId')?.invalid && form.get('moyenTransId')?.touched"
+              >
+                <option [ngValue]="null" disabled>Choisir un moyen de transport...</option>
+                @for (mt of moyensTrans(); track mt.id) {
+                  <option [ngValue]="mt.id">
+                    {{ mt.nom }}
+                    @if (mt.type) {
+                      · {{ mt.type }}
+                    }
+                  </option>
+                }
+              </select>
+              @if (form.get('moyenTransId')?.hasError('required') && form.get('moyenTransId')?.touched) {
+                <p class="field-error">Le moyen de transport est requis</p>
+              }
+
+              <!-- ✅ Aperçu du moyen de transport sélectionné -->
+              @if (selectedMoyenTrans(); as mt) {
+                <div class="transport-preview">
+                  <div class="transport-icon">
+                    <mat-icon>{{ getMoyenTransIcon(mt.nom, mt.type) }}</mat-icon>
+                  </div>
+                  <div class="transport-info">
+                    <span class="transport-name">{{ mt.nom }}</span>
+                    @if (mt.type) {
+                      <span class="transport-type">{{ mt.type }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ Section 2 : Caractéristiques ============ -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="section-num">2</span>
+            Caractéristiques
+          </h3>
+
+          <div class="grid-3">
+            <div class="field">
+              <label for="marque">
+                Marque <span class="req">*</span>
+              </label>
+              <input
+                id="marque"
+                type="text"
+                formControlName="marque"
+                class="input"
+                placeholder="Ex: Toyota"
+                [class.input-error]="form.get('marque')?.invalid && form.get('marque')?.touched"
+              />
+            </div>
+
+            <div class="field">
+              <label for="modele">
+                Modèle <span class="req">*</span>
+              </label>
+              <input
+                id="modele"
+                type="text"
+                formControlName="modele"
+                class="input"
+                placeholder="Ex: Coaster"
+                [class.input-error]="form.get('modele')?.invalid && form.get('modele')?.touched"
+              />
+            </div>
+
+            <div class="field">
+              <label for="annee">Année</label>
+              <input
+                id="annee"
+                type="number"
+                formControlName="annee"
+                class="input"
+                placeholder="Ex: 2022"
+              />
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="field">
+              <label for="capacite">
+                Capacité <span class="req">*</span>
+              </label>
+              <div class="input-with-suffix">
+                <input
+                  id="capacite"
+                  type="number"
+                  formControlName="capacite"
+                  class="input"
+                  min="1"
+                  placeholder="Ex: 45"
+                  [class.input-error]="form.get('capacite')?.invalid && form.get('capacite')?.touched"
+                />
+                <span class="input-suffix">places</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="couleur">Couleur</label>
+              <input
+                id="couleur"
+                type="text"
+                formControlName="couleur"
+                class="input"
+                placeholder="Ex: Blanc"
+              />
+            </div>
+
+            <div class="field">
+              <label for="numeroChassis">N° Châssis (VIN)</label>
+              <input
+                id="numeroChassis"
+                type="text"
+                formControlName="numeroChassis"
+                class="input"
+                placeholder="Optionnel"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ Section 3 : Conformité ============ -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="section-num">3</span>
+            Conformité
+          </h3>
+
+          <div class="grid-2">
+            <!-- Assurance -->
+            <div class="field">
+              <label for="dateAssurance">Expiration assurance</label>
+              <div class="input-with-icon">
+                <input
+                  id="dateAssurance"
+                  type="date"
+                  formControlName="dateAssurance"
+                  class="input"
+                  [class.input-warning]="isDatePassee(form.get('dateAssurance')?.value)"
+                />
+                @if (form.get('dateAssurance')?.value) {
+                  <mat-icon
+                    class="input-status-icon"
+                    [class.icon-success]="!isDatePassee(form.get('dateAssurance')?.value)"
+                    [class.icon-warning]="isDatePassee(form.get('dateAssurance')?.value)">
+                    {{ isDatePassee(form.get('dateAssurance')?.value) ? 'warning' : 'check_circle' }}
+                  </mat-icon>
+                }
+              </div>
+              @if (form.get('dateAssurance')?.value && isDatePassee(form.get('dateAssurance')?.value)) {
+                <p class="field-hint warning">
+                  <mat-icon inline>warning</mat-icon>
+                  Assurance expirée
+                </p>
+              }
+            </div>
+
+            <!-- Visite technique -->
+            <div class="field">
+              <label for="dateVisiteTechnique">Visite technique</label>
+              <div class="input-with-icon">
+                <input
+                  id="dateVisiteTechnique"
+                  type="date"
+                  formControlName="dateVisiteTechnique"
+                  class="input"
+                  [class.input-warning]="isDatePassee(form.get('dateVisiteTechnique')?.value)"
+                />
+                @if (form.get('dateVisiteTechnique')?.value) {
+                  <mat-icon
+                    class="input-status-icon"
+                    [class.icon-success]="!isDatePassee(form.get('dateVisiteTechnique')?.value)"
+                    [class.icon-warning]="isDatePassee(form.get('dateVisiteTechnique')?.value)">
+                    {{ isDatePassee(form.get('dateVisiteTechnique')?.value) ? 'warning' : 'check_circle' }}
+                  </mat-icon>
+                }
+              </div>
+              @if (form.get('dateVisiteTechnique')?.value && isDatePassee(form.get('dateVisiteTechnique')?.value)) {
+                <p class="field-hint warning">
+                  <mat-icon inline>warning</mat-icon>
+                  Visite technique expirée
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ Erreur API ============ -->
+        @if (errorMessage()) {
+          <div class="error-banner">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- ============ Actions ============ -->
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="cancel()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="loading()">
+            @if (loading()) {
+              <span>Enregistrement...</span>
+            } @else {
+              <mat-icon>save</mat-icon>
+              <span>{{ isEditMode() ? 'Mettre à jour' : 'Enregistrer' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

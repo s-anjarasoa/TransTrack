@@ -1,0 +1,284 @@
+<div class="page">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <h1 class="page-title">
+        <span class="page-title-icon"><mat-icon>groups</mat-icon></span>
+        {{ isAdmin ? 'Tous les agents' : 'Mon équipe' }}
+      </h1>
+      <p class="page-subtitle">
+        <span class="subtitle-dot"></span> {{ total() }} agent(s) au total
+      </p>
+    </div>
+    <div class="page-header-actions">
+      <button type="button" class="btn-secondary" (click)="refresh()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon> Actualiser
+      </button>
+      @if (canCreate) {
+        <button type="button" class="btn-primary" (click)="openCreate()">
+          <mat-icon>add</mat-icon> {{ createButtonLabel }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ✅ KPI STRIP -->
+  <div class="stat-strip">
+    <div class="stat-tile">
+      <div class="stat-icon-wrapper"><mat-icon>people</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().total }}</span>
+        <span class="stat-lbl">Total Agents</span>
+      </div>
+    </div>
+    <div class="stat-tile stat-tile-success">
+      <div class="stat-icon-wrapper"><mat-icon>check_circle</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().valides }}</span>
+        <span class="stat-lbl">Validés</span>
+      </div>
+    </div>
+    <div class="stat-tile stat-tile-warning">
+      <div class="stat-icon-wrapper"><mat-icon>pending_actions</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().enAttente }}</span>
+        <span class="stat-lbl">En attente</span>
+      </div>
+    </div>
+    <div class="stat-tile stat-tile-danger">
+      <div class="stat-icon-wrapper"><mat-icon>pause_circle</mat-icon></div>
+      <div class="stat-content">
+        <span class="stat-num">{{ stats().suspendus }}</span>
+        <span class="stat-lbl">Suspendus</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ TOOLBAR (RECHERCHE & FILTRES) -->
+  <div class="toolbar">
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Rechercher un agent (Nom, Email...)" 
+        [value]="searchTerm()" 
+        (input)="onSearch($event)"
+      />
+      @if (searchTerm()) {
+        <button type="button" class="search-clear" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+
+    <!-- ✅ CHIPS (Code exact fourni) -->
+    <div class="chip-row">
+      <button class="filter-chip" [class.filter-chip-active]="statutFilter() === ''" (click)="onFilterChange('')">
+        Tous <span class="filter-count">{{ stats().total }}</span>
+      </button>
+      <button class="filter-chip" [class.filter-chip-active]="statutFilter() === AgentStatus.EN_ATTENTE" (click)="onFilterChange(AgentStatus.EN_ATTENTE)">
+        En attente <span class="filter-count">{{ getCountByStatus(AgentStatus.EN_ATTENTE) }}</span>
+      </button>
+      <button class="filter-chip" [class.filter-chip-active]="statutFilter() === AgentStatus.VALIDE" (click)="onFilterChange(AgentStatus.VALIDE)">
+        Validés <span class="filter-count">{{ getCountByStatus(AgentStatus.VALIDE) }}</span>
+      </button>
+      <button class="filter-chip" [class.filter-chip-active]="statutFilter() === AgentStatus.SUSPENDU" (click)="onFilterChange(AgentStatus.SUSPENDU)">
+        Suspendus <span class="filter-count">{{ getCountByStatus(AgentStatus.SUSPENDU) }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    @if (loading()) {
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Chargement des agents…</p>
+      </div>
+    }
+
+    <table mat-table [dataSource]="dataSource" class="data-table">
+      <!-- Agent -->
+      <ng-container matColumnDef="agent">
+        <th mat-header-cell *matHeaderCellDef>Agent</th>
+        <td mat-cell *matCellDef="let agent">
+          <div class="agent-cell">
+            <div class="agent-avatar">
+              {{ (agentName(agent).charAt(0) || '?').toUpperCase() }}
+            </div>
+            <div class="agent-info">
+              <a [routerLink]="['/agents', agent.id]" class="link-name">
+                {{ agentName(agent) }}
+              </a>
+              <span class="cell-muted">{{ agent.user?.email }}</span>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Société (admin seulement) -->
+      <ng-container matColumnDef="societe">
+        <th mat-header-cell *matHeaderCellDef>Société</th>
+        <td mat-cell *matCellDef="let agent">
+          <span class="societe-tag">{{ agent.societe?.name || '—' }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Poste -->
+      <ng-container matColumnDef="poste">
+        <th mat-header-cell *matHeaderCellDef>Poste</th>
+        <td mat-cell *matCellDef="let agent">
+          <span class="agent-type-badge">{{ agent.type | agentTypeLabel }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Statut -->
+      <ng-container matColumnDef="statut">
+        <th mat-header-cell *matHeaderCellDef>Statut</th>
+        <td mat-cell *matCellDef="let agent">
+          <span class="badge" [class]="statusBadgeClass(agent.status)">
+            {{ statusLabel(agent.status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Actions : icônes alignées à droite, comme l'en-tête -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="th-actions">Actions</th>
+        <td mat-cell *matCellDef="let agent" class="td-actions">
+          <div class="action-cell">
+            @if (agent.status === AgentStatus.EN_ATTENTE && canModerate(agent)) {
+              <button
+                type="button"
+                class="btn-icon btn-icon-success"
+                matTooltip="Valider et envoyer le code"
+                aria-label="Valider et envoyer le code"
+                [disabled]="actionLoadingId() === agent.id"
+                (click)="validateInline(agent, $event)"
+              >
+                <mat-icon>forward_to_inbox</mat-icon>
+              </button>
+              <button
+                type="button"
+                class="btn-icon btn-icon-danger"
+                matTooltip="Rejeter la demande"
+                aria-label="Rejeter la demande"
+                [disabled]="actionLoadingId() === agent.id"
+                (click)="rejectInline(agent, $event)"
+              >
+                <mat-icon>cancel</mat-icon>
+              </button>
+            }
+
+            @if (agent.status === AgentStatus.PRE_VALIDE && canModerate(agent)) {
+              <span
+                class="icon-indicator"
+                matTooltip="Code envoyé : en attente de saisie par l'agent"
+                aria-label="Code envoyé"
+              >
+                <mat-icon>mark_email_read</mat-icon>
+              </span>
+              <button
+                type="button"
+                class="btn-icon btn-icon-danger"
+                matTooltip="Rejeter"
+                aria-label="Rejeter"
+                [disabled]="actionLoadingId() === agent.id"
+                (click)="rejectInline(agent, $event)"
+              >
+                <mat-icon>cancel</mat-icon>
+              </button>
+            }
+
+            @if (canDeleteAgent(agent)) {
+              <button
+                type="button"
+                class="btn-icon btn-icon-danger"
+                matTooltip="Supprimer"
+                aria-label="Supprimer"
+                [disabled]="actionLoadingId() === agent.id"
+                (click)="askDelete(agent, $event)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+
+            <a
+              [routerLink]="['/agents', agent.id]"
+              class="btn-icon btn-icon-link"
+              matTooltip="Voir le détail"
+              aria-label="Voir le détail"
+            >
+              <mat-icon>visibility</mat-icon>
+            </a>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="visibleColumns()"></tr>
+      <tr mat-row *matRowDef="let row; columns: visibleColumns()"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td [attr.colspan]="visibleColumns().length" class="cell-empty">
+          <mat-icon class="empty-icon">search_off</mat-icon>
+          <p>Aucun agent trouvé</p>
+          <span class="cell-muted">Essayez un autre filtre</span>
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [pageSizeOptions]="[5, 10, 20, 50]"
+      [pageSize]="10"
+      showFirstLastButtons
+      aria-label="Sélectionner la page"
+    >
+    </mat-paginator>
+  </div>
+
+  <!-- Modale de création (admin : Directeur ; Directeur/Gérant : agent) -->
+  @if (showCreate()) {
+    <app-agent-form
+      [mode]="createMode"
+      (created)="onCreated($event)"
+      (cancelled)="closeCreate()"
+    />
+  }
+
+  <!-- Modale de confirmation de suppression -->
+  @if (confirmDeleteAgent(); as target) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-icon modal-icon-danger">
+          <mat-icon>warning</mat-icon>
+        </div>
+        <h3 class="modal-title">Supprimer cet agent ?</h3>
+        <p class="modal-text">
+          Vous êtes sur le point de supprimer
+          <strong>{{ agentName(target) }}</strong
+          >. Cette action est <strong>irréversible</strong>.
+        </p>
+        <div class="modal-actions">
+          <button
+            class="btn-ghost"
+            (click)="cancelDelete()"
+            [disabled]="actionLoadingId() === target.id"
+          >
+            Annuler
+          </button>
+          <button
+            class="btn-danger"
+            (click)="confirmDelete()"
+            [disabled]="actionLoadingId() === target.id"
+          >
+            @if (actionLoadingId() === target.id) {
+              <span class="btn-spinner"></span> Suppression…
+            } @else {
+              Oui, supprimer
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

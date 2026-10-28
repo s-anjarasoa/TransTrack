@@ -1,0 +1,80 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
+  <div class="form-grid-3">
+    
+    <div class="field">
+      <label for="firstName">Prénom <span class="required">*</span></label>
+      <input id="firstName" type="text" formControlName="firstName" class="input" />
+      @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+        <p class="field-error">Le prénom est requis.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="lastName">Nom <span class="required">*</span></label>
+      <input id="lastName" type="text" formControlName="lastName" class="input" />
+      @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+        <p class="field-error">Le nom est requis.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="email">Email <span class="required">*</span></label>
+      <input id="email" type="email" formControlName="email" class="input" />
+      @if (form.get('email')?.invalid && form.get('email')?.touched) {
+        <p class="field-error">Email invalide.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Mot de passe <span class="required">*</span></label>
+      <input id="password" type="password" formControlName="password" class="input" />
+      @if (form.get('password')?.invalid && form.get('password')?.touched) {
+        <p class="field-error">Minimum 8 caractères.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="address">Address <span class="required">*</span></label>
+      <input id="address" type="text" formControlName="address" class="input" />
+      @if (form.get('address')?.invalid && form.get('address')?.touched) {
+        <p class="field-error">L'adresse est requise.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="CIN">CIN <span class="required">*</span></label>
+      <input id="CIN" type="text" formControlName="CIN" class="input" />
+      @if (form.get('CIN')?.invalid && form.get('CIN')?.touched) {
+        <p class="field-error">Le CIN est requis (8 à 20 car.).</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="phone">Phone <span class="required">*</span></label>
+      <input id="phone" type="tel" formControlName="phone" class="input" />
+      @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
+        <p class="field-error">Téléphone requis.</p>
+      }
+    </div>
+
+    <div class="field field-span-2">
+      <label for="type">Poste (Type d'Agent) <span class="required">*</span></label>
+      <select id="type" formControlName="type" class="input">
+        <option value="RECEPTIONNISTE">Réceptionniste</option>
+        <option value="COMMERCIAL">Commercial</option>
+        <option value="GESTIONNAIRE">Gestionnaire</option>
+      </select>
+    </div>
+
+  </div>
+
+  @if (errorMessage) {
+    <div class="error-banner">{{ errorMessage }}</div>
+  }
+
+  <div class="form-actions">
+    <button type="submit" class="btn-confirm" [disabled]="loading">
+      Confirmer
+    </button>
+  </div>
+</form>

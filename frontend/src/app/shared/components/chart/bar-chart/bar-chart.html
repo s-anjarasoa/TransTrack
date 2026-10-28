@@ -1,0 +1,16 @@
+<div class="chart-wrap">
+  @for (item of items; track item.label) {
+    <div class="chart-col">
+      <span class="chart-val">{{ item.value }}</span>
+      <div
+        class="chart-bar"
+        [style.height.%]="barHeight(item.value)"
+        [style.background]="item.color || defaultColor"
+        [title]="item.label + ' : ' + item.value"
+      ></div>
+      <span class="chart-label">{{ item.label }}</span>
+    </div>
+  } @empty {
+    <div class="chart-empty">Aucune donnée</div>
+  }
+</div>

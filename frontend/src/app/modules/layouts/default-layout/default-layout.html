@@ -1,0 +1,18 @@
+<div class="layout-shell">
+  <app-sidebar 
+      [mobileOpen]="mobileMenuOpen()"        ← Signal → Boolean ✅
+      [isCollapsed]="isSidebarCollapsed()" 
+    (closeMobile)="closeMenu()"
+    (toggleCollapse)="toggleSidebar()"
+  />
+
+  <div class="layout-main" [class.main-collapsed]="isSidebarCollapsed()">
+    <app-header 
+      (menuToggle)="toggleMenu()"
+      [isSidebarCollapsed]="isSidebarCollapsed()"
+    />
+    <main class="layout-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

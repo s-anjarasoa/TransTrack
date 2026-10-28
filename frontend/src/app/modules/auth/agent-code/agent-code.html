@@ -1,0 +1,262 @@
+<div class="page-wrap">
+  <div class="card-shell">
+
+    <!-- ============================================================
+         PANNEAU GAUCHE - BRANDING
+         ============================================================ -->
+    <div class="branding-panel">
+      <div class="branding-bg"></div>
+
+      <div class="relative z-10">
+        <div class="flex items-center gap-3">
+          <div class="logo-circle">
+            <mat-icon>commute</mat-icon>
+          </div>
+          <span class="logo-text">TransTrack</span>
+        </div>
+        <p class="logo-subtitle">Madagascar · Transport Multimodal</p>
+      </div>
+
+      <div class="branding-content">
+        <h2 class="branding-title">
+          En attente<br>
+          <span class="branding-highlight">de validation</span>
+        </h2>
+
+        <p class="branding-desc">
+          Votre demande a été envoyée au Directeur. Dès qu'il valide, vous recevrez
+          un code d'invitation par email.
+        </p>
+
+        <!-- Étapes -->
+        <div class="steps-indicator">
+          <div class="step done">
+            <span class="step-num">✓</span>
+            <span class="step-label">Profil complété</span>
+          </div>
+          <div class="step" [class.active]="!hasCode()" [class.done]="hasCode()">
+            <span class="step-num">{{ hasCode() ? '✓' : '2' }}</span>
+            <span class="step-label">Validation Directeur</span>
+          </div>
+          <div class="step" [class.active]="hasCode()">
+            <span class="step-num">3</span>
+            <span class="step-label">Code d'invitation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PANNEAU DROIT - CONTENU
+         ============================================================ -->
+    <div class="form-panel">
+      <div class="form-container">
+
+        <!-- ============================================================
+             DEMANDE REJETÉE
+             ============================================================ -->
+        @if (rejected()) {
+          <div class="expired-content">
+
+            <div class="expired-icon">
+              <mat-icon>block</mat-icon>
+            </div>
+
+            <h1 class="expired-title">Demande refusée</h1>
+
+            <p class="expired-subtitle">
+              Votre demande n'a pas été acceptée
+              @if (societeName()) {
+                par <strong>{{ societeName() }}</strong>
+              }.
+            </p>
+
+            <div class="info-card info-card-warning">
+              <mat-icon>info</mat-icon>
+              <div>
+                <strong>Que faire ?</strong>
+                <p>Vous pouvez renvoyer une demande, par exemple vers une autre société.</p>
+              </div>
+            </div>
+
+            <button type="button" class="btn-primary" (click)="newRequest()">
+              <mat-icon>refresh</mat-icon>
+              <span>Refaire une demande</span>
+            </button>
+          </div>
+        }
+
+        <!-- ============================================================
+             ÉTAPE 1 : EN ATTENTE DU CODE
+             ============================================================ -->
+        @if (!rejected() && !hasCode()) {
+          <div class="waiting-content">
+
+            <div class="waiting-icon">
+              <div class="pulse-ring"></div>
+              <mat-icon>hourglass_top</mat-icon>
+            </div>
+
+            <h1 class="waiting-title">En attente de validation</h1>
+
+            <p class="waiting-subtitle">
+              Votre demande a été transmise au Directeur de
+              @if (societeName()) {
+                <strong>{{ societeName() }}</strong>
+              } @else {
+                <strong>la société</strong>
+              }.
+            </p>
+
+            @if (!loadingSociete()) {
+              <div class="info-card">
+                <mat-icon>info</mat-icon>
+                <div>
+                  <strong>Que se passe-t-il maintenant ?</strong>
+                  <ul>
+                    <li>Le Directeur examine votre demande</li>
+                    <li>S'il valide, vous recevrez un <strong>code par email</strong></li>
+                    <li>Ce code sera valable <strong>quelques minutes</strong> seulement</li>
+                  </ul>
+                </div>
+              </div>
+            }
+
+            <div class="waiting-loader">
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+
+            <p class="waiting-hint">
+              ⏳ Cette page se met à jour automatiquement dès que le code arrive.
+              Vous pouvez aussi vous déconnecter et revenir plus tard.
+            </p>
+          </div>
+        }
+
+        <!-- ============================================================
+             ÉTAPE 2 : SAISIE DU CODE
+             ============================================================ -->
+        @if (!rejected() && hasCode() && !codeExpired()) {
+          <div class="code-content">
+
+            <div class="code-icon">
+              <mat-icon>vpn_key</mat-icon>
+            </div>
+
+            <h1 class="code-title">Code d'invitation</h1>
+
+            <p class="code-subtitle">
+              Saisissez le code à 6 chiffres reçu par email
+            </p>
+
+            <!-- Chronomètre -->
+            @if (codeExpiresAt()) {
+              <div class="timer-card" [class.timer-warning]="remainingSeconds() < 60">
+                <mat-icon>{{ remainingSeconds() < 60 ? 'warning' : 'timer' }}</mat-icon>
+                <div class="timer-info">
+                  <span class="timer-label">Temps restant</span>
+                  <span class="timer-value">{{ formattedTime }}</span>
+                </div>
+              </div>
+            }
+
+            <form [formGroup]="codeForm" (ngSubmit)="submitCode()" class="code-form">
+
+              <div class="field">
+                <label for="code">Code d'invitation</label>
+                <input
+                  id="code"
+                  type="text"
+                  inputmode="numeric"
+                  formControlName="code"
+                  class="input input-code"
+                  placeholder="123456"
+                  maxlength="6"
+                  autocomplete="one-time-code"
+                  autofocus
+                  [class.input-error]="codeForm.get('code')?.invalid && codeForm.get('code')?.touched"
+                />
+                @if (codeForm.get('code')?.hasError('required') && codeForm.get('code')?.touched) {
+                  <p class="field-error">Le code est requis</p>
+                }
+                @if (codeForm.get('code')?.hasError('pattern') && codeForm.get('code')?.touched) {
+                  <p class="field-error">Le code doit contenir 6 chiffres</p>
+                }
+              </div>
+
+              @if (errorMessage()) {
+                <div class="error-banner">
+                  <mat-icon>error_outline</mat-icon>
+                  <span>{{ errorMessage() }}</span>
+                </div>
+              }
+
+              <button type="submit" class="btn-primary" [disabled]="loading()">
+                @if (loading()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                  <span>Vérification...</span>
+                } @else {
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Valider le code</span>
+                }
+              </button>
+            </form>
+
+            <p class="code-hint">
+              📧 Le code vous a été envoyé par email à l'adresse de votre compte. Pensez à vérifier vos spams.
+            </p>
+          </div>
+        }
+
+        <!-- ============================================================
+             ÉTAPE 3 : CODE EXPIRÉ
+             ============================================================ -->
+        @if (!rejected() && hasCode() && codeExpired()) {
+          <div class="expired-content">
+
+            <div class="expired-icon">
+              <mat-icon>timer_off</mat-icon>
+            </div>
+
+            <h1 class="expired-title">Code expiré</h1>
+
+            <p class="expired-subtitle">
+              Le code d'invitation a expiré.
+            </p>
+
+            <div class="info-card info-card-warning">
+              <mat-icon>warning</mat-icon>
+              <div>
+                <strong>Ne vous inquiétez pas</strong>
+                <p>Vous pouvez demander un nouveau code en cliquant ci-dessous.</p>
+              </div>
+            </div>
+
+            @if (errorMessage()) {
+              <div class="error-banner">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorMessage() }}</span>
+              </div>
+            }
+
+            <button type="button" class="btn-primary" [disabled]="loading()" (click)="resendCode()">
+              @if (loading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Envoi en cours...</span>
+              } @else {
+                <mat-icon>refresh</mat-icon>
+                <span>Recevoir un nouveau code</span>
+              }
+            </button>
+
+            <p class="expired-hint">
+              🔄 Un nouveau code sera envoyé immédiatement par email.
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,45 @@
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>{{ label }}</mat-label>
+  <input
+    type="text"
+    matInput
+    [formControl]="searchCtrl"
+    [matAutocomplete]="auto"
+    [placeholder]="placeholder"
+    (focus)="onFocus()"
+  />
+  <mat-icon matPrefix class="prefix-icon">place</mat-icon>
+
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    [displayWith]="displayFn"
+    (optionSelected)="onSelect($event.option.value)"
+  >
+    @if (loading()) {
+      <mat-option disabled>
+        <span class="loading-row">
+          <span class="spinner"></span>
+          Recherche...
+        </span>
+      </mat-option>
+    } @else if (results().length === 0 && searchQuery.length >= 2) {
+      <mat-option disabled>Aucun résultat</mat-option>
+    } @else {
+      @for (loc of results(); track loc.id) {
+        <mat-option [value]="loc">
+          <div class="option-row">
+            <mat-icon class="option-icon">{{ iconFor(loc.type) }}</mat-icon>
+            <div class="option-content">
+              <span class="option-name">{{ loc.name }}</span>
+              @if (loc.province || loc.region) {
+                <span class="option-meta">
+                  {{ loc.province }}@if (loc.region) { · {{ loc.region }} }
+                </span>
+              }
+            </div>
+          </div>
+        </mat-option>
+      }
+    }
+  </mat-autocomplete>
+</mat-form-field>

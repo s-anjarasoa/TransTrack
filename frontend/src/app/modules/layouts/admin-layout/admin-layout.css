@@ -1,0 +1,23 @@
+.layout-shell {
+  min-height: 100vh;
+  background: #F7F8FA;
+}
+
+.admin-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 1.25rem;
+  background: #FEF3C7;
+  color: #92400E;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.layout-content {
+  padding: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .layout-main { margin-left: 260px; }
+}

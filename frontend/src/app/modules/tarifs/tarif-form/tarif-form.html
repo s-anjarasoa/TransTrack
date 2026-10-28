@@ -1,0 +1,120 @@
+<div class="modal-backdrop" (click)="cancel()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-icon" [class.modal-icon-edit]="isEditMode()">
+          <mat-icon>{{ isEditMode() ? 'edit' : 'add_card' }}</mat-icon>
+        </div>
+        <div>
+          <h2 class="modal-title">
+            {{ isEditMode() ? 'Modifier le tarif' : 'Nouveau tarif' }}
+          </h2>
+          <p class="modal-subtitle">
+            {{ isEditMode() ? 'Ajustez les prix et la validité' : 'Définissez une grille tarifaire' }}
+          </p>
+        </div>
+      </div>
+      <button type="button" class="btn-close" (click)="cancel()" aria-label="Fermer">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    @if (checking()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement des données...</p>
+      </div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
+
+        <div class="form-section">
+          <h3 class="section-title"><span class="section-num">1</span> Itinéraire concerné</h3>
+          <div class="field">
+            <label for="routeId">Route / Trajet <span class="req">*</span></label>
+            <select id="routeId" formControlName="routeId" class="input" [class.input-error]="form.get('routeId')?.invalid && form.get('routeId')?.touched">
+              <option [ngValue]="null" disabled>Sélectionner un itinéraire...</option>
+              @for (r of routes(); track r.id) {
+                <option [ngValue]="r.id">{{ r.depart }} → {{ r.arrivee }}</option>
+              }
+            </select>
+            @if (form.get('routeId')?.hasError('required') && form.get('routeId')?.touched) {
+              <p class="field-error">L'itinéraire est requis</p>
+            }
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title"><span class="section-num">2</span> Catégorie tarifaire</h3>
+          <div class="field">
+            <label for="categorie">Catégorie de passager <span class="req">*</span></label>
+            <select id="categorie" formControlName="categorie" class="input">
+              @for (cat of categorieOptions; track cat) {
+                <option [value]="cat">{{ categorieLabel(cat) }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title"><span class="section-num">3</span> Tarification</h3>
+          <div class="grid-2">
+            <div class="field">
+              <label for="prix">Prix normal (Ar) <span class="req">*</span></label>
+              <input id="prix" type="number" formControlName="prix" class="input" min="1" placeholder="Ex: 25000" [class.input-error]="(form.get('prix')?.invalid && form.get('prix')?.touched) || form.hasError('promoTooHigh')" />
+              @if (form.get('prix')?.hasError('required') && form.get('prix')?.touched) {
+                <p class="field-error">Le prix est requis</p>
+              }
+            </div>
+
+            <div class="field">
+              <label for="prixPromo">Prix promotionnel (Ar)</label>
+              <input id="prixPromo" type="number" formControlName="prixPromo" class="input" placeholder="Optionnel" [class.input-error]="form.hasError('promoTooHigh')" />
+            </div>
+          </div>
+
+          @if (form.hasError('promoTooHigh') && (form.get('prixPromo')?.touched || form.get('prix')?.touched)) {
+            <div class="alert-error-sm">
+              <mat-icon>warning</mat-icon>
+              <span>Le prix promotionnel doit être strictement inférieur au prix normal.</span>
+            </div>
+          }
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title"><span class="section-num">4</span> Période de validité <span class="optional">(optionnel)</span></h3>
+          <div class="grid-2">
+            <div class="field">
+              <label for="dateDebut">Date de début</label>
+              <input id="dateDebut" type="date" formControlName="dateDebut" class="input" />
+            </div>
+            <div class="field">
+              <label for="dateFin">Date de fin</label>
+              <input id="dateFin" type="date" formControlName="dateFin" class="input" />
+            </div>
+          </div>
+        </div>
+
+        @if (errorMessage()) {
+          <div class="error-banner">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="cancel()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="loading()">
+            @if (loading()) {
+              <span>Enregistrement...</span>
+            } @else {
+              <mat-icon>save</mat-icon>
+              <span>{{ isEditMode() ? 'Mettre à jour' : 'Créer le tarif' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

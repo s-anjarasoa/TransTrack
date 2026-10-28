@@ -1,0 +1,283 @@
+<div class="page">
+
+  @if (!societe()) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">search_off</mat-icon>
+      <h3>Société introuvable</h3>
+      <a routerLink="/societes" class="btn-primary">Retour aux sociétés</a>
+    </div>
+  } @else {
+
+    <!-- ============================================================
+         HERO HEADER
+         ============================================================ -->
+    <div class="hero">
+      <div class="hero-left">
+        <a routerLink="/societes" class="back-link" style="color: rgba(255,255,255,0.7);">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Retour aux sociétés</span>
+        </a>
+        
+        <div class="hero-tags">
+          <span class="status-chip" [class]="statusBadgeClass(societe()!.statut)">
+            <span class="status-dot"></span>
+            {{ getStatusLabel(societe()!.statut) }}
+          </span>
+        </div>
+
+        <h1 class="hero-title">{{ societe()!.name }}</h1>
+        
+        <div class="hero-meta">
+          <span class="meta-item">
+            <mat-icon>calendar_today</mat-icon>
+            Créée le {{ societe()!.createdAt | date:'dd/MM/yyyy' }}
+          </span>
+          @if (societe()!.updatedAt) {
+            <span class="meta-item">
+              <mat-icon>update</mat-icon>
+              Modifiée le {{ societe()!.updatedAt | date:'dd/MM/yyyy' }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        @if (isOwnerDirecteur || isAdmin) {
+          <a [routerLink]="['/societes', societe()!.id, 'edit']" class="btn-secondary">
+            <mat-icon>edit</mat-icon>
+            <span>Modifier</span>
+          </a>
+        }
+      </div>
+    </div>
+
+    <!-- ============================================================
+         KPI ROW
+         ============================================================ -->
+    <div class="kpi-row">
+      <!-- KPI Agents -->
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-primary">
+          <mat-icon>group</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ societe()!.agents?.length || 0 }}</span>
+          <span class="kpi-label">Agents</span>
+        </div>
+      </div>
+
+      <!-- KPI Abonnement -->
+      @if (abonnementActif()) {
+        <div class="kpi-card" [class.kpi-card-warning]="isExpiringSoon(abonnementActif()?.dateFin)">
+          <div class="kpi-icon" [class.kpi-icon-success]="!isExpiringSoon(abonnementActif()?.dateFin)" [class.kpi-icon-warning]="isExpiringSoon(abonnementActif()?.dateFin)">
+            <mat-icon>workspace_premium</mat-icon>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ abonnementActif()?.type }}</span>
+            <span class="kpi-label">Expire le {{ abonnementActif()?.dateFin | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      } @else {
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: #F3F4F6; color: #9CA3AF;">
+            <mat-icon>workspace_premium</mat-icon>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-value" style="font-size: 0.9rem; color: #6B7280;">Aucun abonnement</span>
+            <span class="kpi-label">Non souscrit</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ============================================================
+         CONTENU PRINCIPAL
+         ============================================================ -->
+    <div class="content-grid">
+
+      <!-- ================= COLONNE GAUCHE : DÉTAILS ================= -->
+      <div class="content-main">
+        
+        <!-- CARTE ABONNEMENT -->
+        @if (abonnementActif()) {
+          <div class="detail-card">
+            <div class="card-header">
+              <div class="card-title">
+                <mat-icon>workspace_premium</mat-icon>
+                <span>Abonnement en cours</span>
+              </div>
+              
+              @if (isExpiringSoon(abonnementActif()?.dateFin)) {
+                <span class="badge-expiring">Expire bientôt</span>
+              }
+            </div>
+
+            <dl class="info-grid">
+              <div class="info-row">
+                <dt><mat-icon>card_membership</mat-icon> Formule</dt>
+                <dd>{{ abonnementActif()?.type }}</dd>
+              </div>
+
+              <div class="info-row">
+                <dt><mat-icon>event</mat-icon> Date de début</dt>
+                <dd>{{ abonnementActif()?.dateDebut | date:'dd/MM/yyyy' }}</dd>
+              </div>
+
+              <div class="info-row">
+                <dt><mat-icon>event_busy</mat-icon> Date d'expiration</dt>
+                <dd [style.color]="isExpiringSoon(abonnementActif()?.dateFin) ? '#D97706' : '#0F172A'">
+                  {{ abonnementActif()?.dateFin | date:'dd/MM/yyyy' }}
+                </dd>
+              </div>
+
+              <div class="info-row">
+                <dt><mat-icon>check_circle</mat-icon> Statut</dt>
+                <dd>
+                  <span class="status-chip" 
+                        [class.chip-success]="abonnementActif()?.statut === 'ACTIF' || abonnementActif()?.statut === 'VALIDE'" 
+                        [class.chip-danger]="abonnementActif()?.statut !== 'ACTIF' && abonnementActif()?.statut !== 'VALIDE'">
+                    <span class="status-dot"></span>
+                    {{ abonnementActif()?.statut }}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        }
+
+        <!-- Informations générales -->
+        <div class="detail-card">
+          <div class="card-header">
+            <div class="card-title">
+              <mat-icon>business</mat-icon>
+              <span>Informations générales</span>
+            </div>
+          </div>
+
+          <dl class="info-grid">
+            <div class="info-row">
+              <dt><mat-icon>mail</mat-icon> Email</dt>
+              <dd><a href="mailto:{{ societe()!.email }}">{{ societe()!.email }}</a></dd>
+            </div>
+            
+            <div class="info-row">
+              <dt><mat-icon>phone</mat-icon> Téléphone</dt>
+              <dd><a href="tel:{{ societe()!.phone }}">{{ societe()!.phone }}</a></dd>
+            </div>
+
+            <div class="info-row info-row-full">
+              <dt><mat-icon>location_on</mat-icon> Adresse</dt>
+              <dd>{{ societe()!.address }}</dd>
+            </div>
+
+            <div class="info-row">
+              <dt><mat-icon>fingerprint</mat-icon> NIF</dt>
+              <dd><code>{{ societe()!.nif }}</code></dd>
+            </div>
+
+            <div class="info-row">
+              <dt><mat-icon>badge</mat-icon> Numéro RCS</dt>
+              <dd><code>{{ societe()!.numState }}</code></dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Directeur -->
+        @if (societe()!.directeur) {
+          <div class="detail-card">
+            <div class="card-header">
+              <div class="card-title">
+                <mat-icon>person</mat-icon>
+                <span>Directeur</span>
+              </div>
+            </div>
+            
+            <dl class="info-grid">
+              <div class="info-row">
+                <dt><mat-icon>account_circle</mat-icon> Nom</dt>
+                <dd>{{ directeurFullName() }}</dd>
+              </div>
+              
+              <div class="info-row">
+                <dt><mat-icon>mail</mat-icon> Email</dt>
+                <dd><a href="mailto:{{ societe()!.directeur?.user?.email }}">{{ societe()!.directeur?.user?.email }}</a></dd>
+              </div>
+
+              <div class="info-row">
+                <dt><mat-icon>phone</mat-icon> Téléphone</dt>
+                <dd>{{ societe()!.directeur?.phone || '—' }}</dd>
+              </div>
+
+              <div class="info-row">
+                <dt><mat-icon>work</mat-icon> Type</dt>
+                <dd><span class="agent-type-badge">{{ societe()!.directeur?.type | agentTypeLabel }}</span></dd>
+              </div>
+            </dl>
+          </div>
+        }
+      </div>
+
+      <!-- ================= COLONNE DROITE : ACTIONS ================= -->
+      <aside class="content-side">
+        
+        <!-- Code d'invitation -->
+        @if (isOwnerDirecteur) {
+          <div class="detail-card highlight-card">
+            <div class="card-header" style="border-bottom: none; margin-bottom: 0.5rem;">
+              <div class="card-title">
+                <mat-icon>vpn_key</mat-icon>
+                <span>Code d'invitation</span>
+              </div>
+            </div>
+            <p class="card-desc">Partagez ce code avec vos futurs agents pour qu'ils s'inscrivent.</p>
+            
+            <div class="code-box">
+              <code>{{ societe()!.codeInvitation }}</code>
+              <button type="button" class="code-copy-btn" (click)="copyCode()" matTooltip="Copier">
+                <mat-icon>{{ codeCopied() ? 'check' : 'content_copy' }}</mat-icon>
+              </button>
+            </div>
+            
+            <button type="button" class="btn-action btn-start w-full" (click)="regenerateCode()" [disabled]="actionLoading()">
+              <mat-icon>autorenew</mat-icon>
+              <span>{{ actionLoading() ? 'Génération...' : 'Régénérer le code' }}</span>
+            </button>
+          </div>
+        }
+
+        <!-- Validation -->
+        @if (isAdmin && societe()!.statut === SocieteStatut.EN_ATTENTE) {
+          <div class="detail-card warning-card">
+            <div class="card-header" style="border-bottom: none; margin-bottom: 0.5rem;">
+              <div class="card-title">
+                <mat-icon>pending_actions</mat-icon>
+                <span>Validation</span>
+              </div>
+            </div>
+            <p class="card-desc">Cette société attend une décision de votre part.</p>
+
+            @if (errorMessage()) {
+              <div class="alert-error" style="margin-bottom: 1rem;">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorMessage() }}</span>
+              </div>
+            }
+
+            <div class="action-stack">
+              <button type="button" class="btn-action btn-success" (click)="validate()" [disabled]="actionLoading()">
+                <mat-icon>check_circle</mat-icon>
+                <span>Valider la société</span>
+              </button>
+              <button type="button" class="btn-action btn-danger-outline" (click)="reject()" [disabled]="actionLoading()">
+                <mat-icon>cancel</mat-icon>
+                <span>Rejeter</span>
+              </button>
+            </div>
+          </div>
+        }
+
+      </aside>
+
+    </div>
+  }
+</div>

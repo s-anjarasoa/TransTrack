@@ -1,0 +1,24 @@
+<div class="area-chart-container">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+    <defs>
+      <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" [attr.stop-color]="color" stop-opacity="0.3" />
+        <stop offset="100%" [attr.stop-color]="color" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+
+    <!-- La surface (Gradient) -->
+    @if (data.length > 0) {
+      <polygon [attr.points]="areaPoints" fill="url(#areaGradient)" class="chart-area" />
+      <!-- La ligne -->
+      <polyline [attr.points]="points" fill="none" [attr.stroke]="color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chart-line" />
+    }
+  </svg>
+
+  <!-- Les labels de l'axe X -->
+  <div class="x-axis">
+    @for (item of data; track item.label) {
+      <span class="x-label">{{ item.label }}</span>
+    }
+  </div>
+</div>

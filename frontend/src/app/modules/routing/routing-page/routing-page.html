@@ -1,0 +1,227 @@
+<div class="page">
+  <!-- ═══ HEADER ═══ -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <mat-icon class="title-icon">route</mat-icon>
+        Recherche d'itinéraire
+      </h1>
+      <p class="page-subtitle">Trouvez le meilleur trajet entre deux villes de Madagascar</p>
+    </div>
+  </div>
+
+  <!-- ═══ BANNIÈRE DE RÔLE ═══ -->
+  @if (isAgent) {
+    <div class="role-banner role-banner--agent">
+      <mat-icon>info</mat-icon>
+      <span>En tant qu'<strong>agent</strong>, les itinéraires sont limités aux routes de votre société.</span>
+    </div>
+  }
+  @if (isAdmin) {
+    <div class="role-banner role-banner--admin">
+      <mat-icon>admin_panel_settings</mat-icon>
+      <span>Mode <strong>administrateur</strong> : accès complet et outils de benchmark.</span>
+    </div>
+  }
+
+  <div class="layout">
+    <!-- PANNEAU GAUCHE -->
+    <div class="panel-form">
+      <div class="card form-card">
+        @if (isAdmin) {
+          <div class="field">
+            <label>Filtrer par société (optionnel)</label>
+            <select class="select-input" [value]="societeFilter() ?? ''" (change)="onSocieteFilterChange($event)">
+              <option value="">Toutes les sociétés</option>
+              @for (s of societes(); track s.id) { <option [value]="s.id">{{ s.name }}</option> }
+            </select>
+          </div>
+        }
+
+        <div class="field-autocomplete" (focusout)="hideStartDropdown()">
+          <label>Départ</label>
+          <div class="input-wrapper">
+            <mat-icon class="input-icon">trip_origin</mat-icon>
+            <input type="text" placeholder="Ex: Mahamasina" [value]="startQuery()" (input)="onStartInput($any($event.target).value)" (focus)="showStartDropdown.set(startSuggestions().length > 0)" />
+          </div>
+          @if (showStartDropdown()) {
+            <ul class="dropdown">
+              @for (loc of startSuggestions(); track loc.id) {
+                <li (mousedown)="$event.preventDefault(); selectStart(loc)">
+                  <span class="loc-name">{{ loc.name }}</span>
+                  @if (loc.province) { <span class="loc-region">{{ loc.province }}</span> }
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <button type="button" class="btn-swap" (click)="swap()" title="Inverser"><mat-icon>swap_vert</mat-icon></button>
+
+        <div class="field-autocomplete" (focusout)="hideEndDropdown()">
+          <label>Arrivée</label>
+          <div class="input-wrapper">
+            <mat-icon class="input-icon">place</mat-icon>
+            <input type="text" placeholder="Ex: Mahazoarivo" [value]="endQuery()" (input)="onEndInput($any($event.target).value)" (focus)="showEndDropdown.set(endSuggestions().length > 0)" />
+          </div>
+          @if (showEndDropdown()) {
+            <ul class="dropdown">
+              @for (loc of endSuggestions(); track loc.id) {
+                <li (mousedown)="$event.preventDefault(); selectEnd(loc)">
+                  <span class="loc-name">{{ loc.name }}</span>
+                  @if (loc.province) { <span class="loc-region">{{ loc.province }}</span> }
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <div class="field">
+          <label>Critère d'optimisation</label>
+          <div class="criteria-row">
+            <button type="button" class="criteria-btn" [class.active]="criteria() === RoutingCriteria.DISTANCE" (click)="criteria.set(RoutingCriteria.DISTANCE)"><mat-icon>straighten</mat-icon> Distance</button>
+            <button type="button" class="criteria-btn" [class.active]="criteria() === RoutingCriteria.DUREE" (click)="criteria.set(RoutingCriteria.DUREE)"><mat-icon>schedule</mat-icon> Durée</button>
+            <button type="button" class="criteria-btn" [class.active]="criteria() === RoutingCriteria.PRIX" (click)="criteria.set(RoutingCriteria.PRIX)"><mat-icon>payments</mat-icon> Prix</button>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-primary" [disabled]="!canSearch() || loading()" (click)="search()">
+            <mat-icon>{{ loading() ? 'hourglass_top' : 'search' }}</mat-icon>
+            {{ loading() ? 'Recherche...' : 'Rechercher' }}
+          </button>
+          <button type="button" class="btn-ghost" (click)="reset()"><mat-icon>refresh</mat-icon> Réinitialiser</button>
+        </div>
+
+        @if (isAdmin) {
+          <div class="admin-hint">
+            <mat-icon>science</mat-icon>
+            <span>Benchmark :</span>
+            <button type="button" class="btn-compare" [disabled]="!canSearch() || loading()" (click)="runCompare()">Comparer A* vs Dijkstra</button>
+          </div>
+        }
+      </div>
+
+      @if (previewResult(); as pv) {
+        @if (!result() && !compareResult() && pv.paths.length > 0) {
+          <div class="card preview-card">
+            <h3><mat-icon>explore</mat-icon> {{ pv.paths.length }} itinéraire(s) possible(s)</h3>
+            <p class="preview-subtitle">Cliquez sur <strong>Rechercher</strong> pour obtenir le chemin optimal.</p>
+            <div class="preview-list">
+              @for (path of pv.paths; track $index) {
+                <div class="preview-item">
+                  <span class="preview-color" [style.background]="getPreviewColor($index)"></span>
+                  <div class="preview-body">
+                    <div class="preview-title">
+                      <strong>Itinéraire #{{ $index + 1 }}</strong>
+                      <span class="preview-type">{{ path.type }}</span>
+                    </div>
+                    <div class="preview-meta">
+                      <span>{{ path.totalDistance }} km</span> • <span>{{ formatDuration(path.totalDuration) }}</span> • <span>{{ formatAriary(path.totalCost) }}</span>
+                    </div>
+                    <div class="preview-waypoints">{{ path.waypoints.map(w => w.name).join(' → ') }}</div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      @if (error()) {
+        <div class="alert-error"><mat-icon>error_outline</mat-icon> {{ error() }}</div>
+      }
+
+      @if (result(); as r) {
+        @if (r.found) {
+          <div class="card result-card">
+            <div class="result-header">
+              <h3><mat-icon>check_circle</mat-icon> Itinéraire optimal</h3>
+              <div class="result-metrics">
+                <span><mat-icon>route</mat-icon> {{ r.totalDistance }} km</span>
+                <span><mat-icon>schedule</mat-icon> {{ formatDuration(r.totalDuration) }}</span>
+                <span><mat-icon>payments</mat-icon> {{ formatAriary(r.totalCost) }}</span>
+              </div>
+            </div>
+
+            <div class="steps">
+              <!-- ✅ MISE A JOUR : Utilisation des waypoints pour le détail si disponibles -->
+              @if (r.waypoints && r.waypoints.length > 0) {
+                @for (w of r.waypoints; track w.name; let i = $index) {
+                  <div class="step">
+                    <div class="step-marker">
+                      <span class="step-num">{{ i === 0 ? 'A' : (i === r.waypoints!.length - 1 ? 'Z' : i) }}</span>
+                    </div>
+                    <div class="step-body">
+                      <div class="step-route">
+                        <strong>{{ w.name }}</strong>
+                      </div>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <!-- Fallback si pas de waypoints -->
+                @for (step of r.path; track step.routeId; let i = $index) {
+                  <div class="step">
+                    <div class="step-marker"><span class="step-num">{{ i + 1 }}</span></div>
+                    <div class="step-body">
+                      <div class="step-route">
+                        <strong>{{ step.fromName }}</strong>
+                        <mat-icon>arrow_forward</mat-icon>
+                        <strong>{{ step.toName }}</strong>
+                      </div>
+                      <div class="step-meta">
+                        @if (isAgent || isAdmin) { <span class="route-name">{{ step.routeName }}</span> • }
+                        <span>{{ step.distance }} km</span> • <span>{{ formatDuration(step.duration) }}</span> • <span>{{ formatAriary(step.cost) }}</span>
+                        <span class="transport-badge">{{ step.moyenTransType }}</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+
+            <div class="perf-meta">
+              <mat-icon>speed</mat-icon>
+              Calculé en {{ r.executionTimeMs }} ms ({{ r.nodesExplored }} nœud(s) exploré(s) avec {{ r.algorithm === 'A_STAR' ? 'A*' : 'Dijkstra' }})
+            </div>
+          </div>
+        } @else {
+          <div class="empty-state">
+            <mat-icon class="empty-icon">block</mat-icon>
+            <h3>Aucun itinéraire trouvé</h3>
+            <p>@if (isAgent) { Aucune route de votre société ne relie ces deux villes. } @else { Aucune route active ne relie ces deux villes. }</p>
+          </div>
+        }
+      }
+
+      @if (compareResult(); as c) {
+        <!-- INCHANGÉ : Gardez votre code compare-card ici -->
+      }
+    </div>
+
+    <!-- PANNEAU DROIT : CARTE -->
+    <div class="panel-map">
+      @if (previewResult() && !result() && !compareResult() && previewResult()!.paths.length > 0) {
+        <div class="map-legend map-legend--preview">
+          <div class="legend-title"><mat-icon>route</mat-icon> {{ previewResult()!.paths.length }} itinéraire(s) possible(s)</div>
+          @for (path of previewResult()!.paths; track $index) {
+            <div class="legend-item">
+              <span class="legend-line" [style.background]="getPreviewColor($index)"></span>
+              <span>#{{ $index + 1 }} — {{ path.totalDistance }} km • {{ formatAriary(path.totalCost) }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (compareResult()) {
+        <div class="map-legend">
+          <div class="legend-item"><span class="legend-line legend-line--astar"></span><span>A* ({{ compareResult()!.astar.totalDistance }} km)</span></div>
+          <div class="legend-item"><span class="legend-line legend-line--dijkstra"></span><span>Dijkstra ({{ compareResult()!.dijkstra.totalDistance }} km)</span></div>
+        </div>
+      }
+
+      <div #mapContainer class="map"></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,49 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Contrôle des billets</h1>
+      <p class="page-subtitle">Scannez le QR code ou saisissez le numéro du billet</p>
+    </div>
+  </div>
+
+  <div class="scanner-card">
+    <div class="scanner-icon">
+      <mat-icon>qr_code_scanner</mat-icon>
+    </div>
+    <h2>Scanner un billet</h2>
+    <p>Placez le curseur dans le champ et scannez avec la douchette, ou tapez le code manuellement.</p>
+
+    <div class="input-group">
+      <input 
+        type="text" 
+        [ngModel]="scanCode()" 
+        (ngModelChange)="scanCode.set($event)"
+        (keyup.enter)="validerBillet()"
+        placeholder="Ex: BLT-2026-A1B2C3..." 
+        autofocus
+      />
+      <button type="button" (click)="validerBillet()" [disabled]="loading() || !scanCode()">
+        @if (loading()) { Patientez... } @else { Valider }
+      </button>
+    </div>
+
+    @if (scanResult()) {
+      <div class="scan-feedback" 
+           [class.feedback-success]="scanResult()!.success" 
+           [class.feedback-error]="!scanResult()!.success">
+        <mat-icon>{{ scanResult()!.success ? 'check_circle' : 'error' }}</mat-icon>
+        <div class="feedback-content">
+          <strong>{{ scanResult()!.message }}</strong>
+          @if (scanResult()!.success) {
+            <div class="passenger-info">
+              <span class="p-name"><mat-icon>person</mat-icon> {{ scanResult()!.passager }}</span>
+              @if (scanResult()!.details) {
+                <span class="p-route"><mat-icon>route</mat-icon> {{ scanResult()!.details }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

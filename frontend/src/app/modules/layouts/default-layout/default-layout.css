@@ -1,0 +1,24 @@
+.layout-shell {
+  min-height: 100vh;
+  background:  #F9FAFB ;
+}
+
+.layout-content {
+  padding: 1.5rem;
+}
+
+.layout-main {
+  margin-left: 260px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ✅ Quand le sidebar est réduit */
+.main-collapsed {
+  margin-left: 72px;
+}
+
+@media (max-width: 1023px) {
+  .layout-main {
+    margin-left: 0 !important;
+  }
+}

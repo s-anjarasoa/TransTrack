@@ -1,0 +1,155 @@
+<div class="page">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <button class="back-link" (click)="cancel()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Retour
+      </button>
+      <h1 class="page-title">
+        @if (isEditMode()) { Modifier la société } @else { Créer ma société }
+      </h1>
+      <p class="page-subtitle">
+        @if (isEditMode()) {
+          Certaines informations légales ne sont plus modifiables après création.
+        } @else {
+          Remplissez les informations de votre société pour l'enregistrer sur TransTrack.
+        }
+      </p>
+    </div>
+  </div>
+
+    <div class="form-card">
+      
+      <!-- SI ÉDITION -->
+      @if (isEditMode()) {
+        <div class="edit-banner">
+          <mat-icon>info</mat-icon>
+          <div>
+            <strong>Mode édition</strong>
+            <p>Seules les informations de contact peuvent être modifiées.</p>
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        
+        <!-- SECTION 1 : INFOS GÉNÉRALES -->
+        <div class="form-section">
+          <h3 class="section-title"><span class="section-num">1</span> Informations générales</h3>
+          <div class="field">
+            <label>Nom de la société <span class="req">*</span></label>
+            <input type="text" formControlName="name" class="input" placeholder="Ex: TransTrack Antananarivo" />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <p class="field-error">Le nom est requis</p>
+            }
+          </div>
+        </div>
+
+        <!-- SECTION 2 : COORDONNÉES -->
+        <div class="form-section">
+          <h3 class="section-title"><span class="section-num">2</span> Coordonnées</h3>
+          <div class="grid-2">
+            <div class="field">
+              <label>Téléphone <span class="req">*</span></label>
+              <input type="tel" formControlName="phone" class="input" placeholder="+261 34 00 000 00" />
+              @if (form.get('phone')?.hasError('required') && form.get('phone')?.touched) {
+                <p class="field-error">Le téléphone est requis</p>
+              }
+              @if (form.get('phone')?.hasError('pattern') && form.get('phone')?.touched) {
+                <p class="field-error">Le téléphone incorrect </p>
+              }
+            </div>
+            <div class="field">
+              <label>Email <span class="req">*</span></label>
+              <input type="email" formControlName="email" class="input" placeholder="contact@societe.mg" />
+              @if (form.get('email')?.invalid && form.get('email')?.touched) {
+                <p class="field-error">Email invalide</p>
+              }
+            </div>
+          </div>
+          <div class="field mt-1">
+            <label>Adresse <span class="req">*</span></label>
+            <input type="text" formControlName="address" class="input" placeholder="Lot II, Antananarivo" />
+            @if (form.get('address')?.invalid && form.get('address')?.touched) {
+              <p class="field-error">L'adresse est requise</p>
+            }
+          </div>
+        </div>
+
+        <!-- SECTION 3 : IDENTIFIANTS LÉGAUX -->
+        <!-- SECTION 3 : IDENTIFIANTS LÉGAUX -->
+<div class="form-section">
+  <h3 class="section-title"><span class="section-num">3</span> Identifiants légaux</h3>
+  <div class="grid-2">
+    <div class="field">
+      <label>
+        NIF <span class="req">*</span>
+        @if (isEditMode()) { <mat-icon class="lock-icon" matTooltip="Verrouillé">lock</mat-icon> }
+      </label>
+      <input type="text" formControlName="nif" class="input" placeholder="1234567890" [readonly]="isEditMode()" />
+      
+      <!-- Erreur générale si requis et touché -->
+      @if (form.get('nif')?.hasError('required') && form.get('nif')?.touched) {
+        <p class="field-error">NIF requis</p>
+      }
+      
+      <!-- Erreur spécifique si le pattern ne correspond pas -->
+      @if (form.get('nif')?.hasError('pattern') && form.get('nif')?.touched) {
+        <p class="field-error">Uniquement des chiffres (norme NIF)</p>
+      }
+    </div>
+    
+    <div class="field">
+      <label>
+        Numéro Statistique <span class="req">*</span>
+        @if (isEditMode()) { <mat-icon class="lock-icon" matTooltip="Verrouillé">lock</mat-icon> }
+      </label>
+      <input type="text" formControlName="numState" class="input" placeholder="RCS-001" [readonly]="isEditMode()" />
+      @if (form.get('numState')?.hasError('required') && form.get('numState')?.touched) {
+        <p class="field-error">Numéro Statistique requis</p>
+      }
+      @if (form.get('numState')?.hasError('pattern') && form.get('numState')?.touched) {
+        <p class="field-error">Format du Numéro Statistique invalide</p>
+      }
+    </div>
+  </div>
+</div>
+        <!-- INFO BOX -->
+        @if (!isEditMode()) {
+          <div class="info-box">
+            <mat-icon>lightbulb</mat-icon>
+            <div>
+              <strong>Prochaines étapes :</strong>
+              <ul>
+                <li>Votre société sera examinée par un administrateur.</li>
+                <li>Une fois validée, vous devrez souscrire un abonnement pour la rendre visible.</li>
+              </ul>
+            </div>
+          </div>
+        }
+
+        <!-- ERREURS -->
+        @if (errorMessage()) {
+          <div class="error-banner">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- ACTIONS -->
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancel()">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="loading() || form.invalid">
+            @if (loading()) {
+              <span class="btn-spinner"></span> Enregistrement...
+            } @else {
+              <mat-icon>save</mat-icon>
+              {{ isEditMode() ? 'Mettre à jour' : 'Créer la société' }}
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+ </div>

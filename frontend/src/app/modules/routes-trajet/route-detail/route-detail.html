@@ -1,0 +1,241 @@
+<div class="page">
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- HEADER                                                   -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <div class="breadcrumb">
+        <a routerLink="/routes" class="breadcrumb-link">
+          <mat-icon>arrow_back</mat-icon>
+          Itinéraires
+        </a>
+        <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
+        <span class="breadcrumb-current">
+          {{ route_data()?.depart }} → {{ route_data()?.arrivee }}
+        </span>
+      </div>
+
+      <h1 class="page-title">
+        {{ route_data()?.nom || (route_data()?.depart + ' → ' + route_data()?.arrivee) }}
+      </h1>
+
+      @if (route_data()?.description) {
+        <p class="page-subtitle">{{ route_data()?.description }}</p>
+      }
+    </div>
+
+    <div class="page-header-actions">
+      <button type="button" class="btn-secondary" (click)="refresh()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+        <span>Actualiser</span>
+      </button>
+
+      @if (canEdit() && route_data()) {
+        <a [routerLink]="['/routes', route_data()!.id, 'edit']" class="btn-primary">
+          <mat-icon>edit</mat-icon>
+          <span>Modifier</span>
+        </a>
+      }
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- LOADING / CONTENU                                        -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de l'itinéraire...</p>
+    </div>
+  } @else if (route_data()) {
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- KPI CARDS                                                -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon"><mat-icon>straighten</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-value">
+            {{ totalDistance() }} <small>km</small>
+          </span>
+          <span class="stat-label">Distance</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon"><mat-icon>schedule</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-value">
+            {{ formatDuree(route_data()!.dureeEstimee) }}
+          </span>
+          <span class="stat-label">Durée estimée</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon"><mat-icon>place</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-value">{{ stops().length }}</span>
+          <span class="stat-label">Étapes</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-transport">
+          <mat-icon>{{ getMoyenTransIcon(route_data()!.moyenTrans?.nom) }}</mat-icon>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value stat-value-sm">
+            {{ route_data()!.moyenTrans?.nom || '—' }}
+          </span>
+          <span class="stat-label">Moyen de transport</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- LAYOUT : CARTE + TIMELINE                                -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="detail-layout">
+
+      <!-- ── CARTE ── -->
+      <div class="map-card">
+        <div class="map-card-header">
+          <h2 class="section-title">
+            <mat-icon>map</mat-icon>
+            Carte de l'itinéraire
+          </h2>
+          <div class="map-badge">
+            Zoom {{ currentZoom() }} · {{ zoomLevelLabel() }}
+          </div>
+        </div>
+
+        <div class="map-wrapper">
+          <div #mapContainer class="map-container"></div>
+
+          <!-- Contrôles carte -->
+          <div class="map-controls">
+            <button type="button" class="map-btn" (click)="zoomIn()" matTooltip="Zoom +">
+              <mat-icon>add</mat-icon>
+            </button>
+            <button type="button" class="map-btn" (click)="zoomOut()" matTooltip="Zoom −">
+              <mat-icon>remove</mat-icon>
+            </button>
+            <button type="button" class="map-btn" (click)="zoomToFit()" matTooltip="Vue d'ensemble">
+              <mat-icon>fit_screen</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TIMELINE ── -->
+      <div class="timeline-card">
+        <h2 class="section-title">
+          <mat-icon>alt_route</mat-icon>
+          Détail du trajet
+        </h2>
+
+        <div class="timeline">
+          @for (stop of stops(); track stop.id; let i = $index; let isLast = $last) {
+            <div class="timeline-item">
+              <!-- Marker -->
+              <div class="timeline-marker">
+                <div class="timeline-dot" [class]="stopTypeColor(i)">
+                  <span>{{ i === 0 ? 'A' : isLast ? 'Z' : i }}</span>
+                </div>
+                @if (!isLast) {
+                  <div class="timeline-line"></div>
+                }
+              </div>
+
+              <!-- Content -->
+              <div class="timeline-body">
+                <div class="timeline-header">
+                  <span class="timeline-type" [class]="stopTypeColor(i) + '-text'">
+                    {{ stopTypeLabel(i) }}
+                  </span>
+                  @if (stop.distanceDepuisDepart !== undefined) {
+                    <span class="timeline-distance">
+                      {{ stop.distanceDepuisDepart }} km
+                    </span>
+                  }
+                </div>
+
+                <div class="timeline-name">{{ stop.location?.name }}</div>
+
+                @if (stop.location?.province || stop.location?.region) {
+                  <div class="timeline-meta">
+                    <mat-icon>location_on</mat-icon>
+                    {{ stop.location?.province }}
+                    @if (stop.location?.region) {
+                      <span>· {{ stop.location?.region }}</span>
+                    }
+                  </div>
+                }
+
+                @if (stop.heureDepartRel) {
+                  <div class="timeline-time">
+                    <mat-icon>schedule</mat-icon>
+                    +{{ formatMinutes(stop.heureDepartRel) }} depuis le départ
+                  </div>
+                }
+
+                @if (stop.description) {
+                  <div class="timeline-desc">{{ stop.description }}</div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- INFOS COMPLÉMENTAIRES                                    -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="info-grid">
+
+      <!-- Statut -->
+      <div class="info-card">
+        <h3 class="info-card-title">Statut</h3>
+        <span class="badge-status" [class]="statutMeta(route_data()!.statut).cls">
+          <mat-icon>{{ statutMeta(route_data()!.statut).icon }}</mat-icon>
+          {{ statutMeta(route_data()!.statut).label }}
+        </span>
+      </div>
+
+      <!-- Départ -->
+      <div class="info-card">
+        <h3 class="info-card-title">
+          <span class="dot dot-success"></span> Départ
+        </h3>
+        <div class="info-value">{{ route_data()!.depart }}</div>
+        @if (route_data()!.pointDepart) {
+          <div class="info-sub">{{ route_data()!.pointDepart }}</div>
+        }
+      </div>
+
+      <!-- Arrivée -->
+      <div class="info-card">
+        <h3 class="info-card-title">
+          <span class="dot dot-danger"></span> Arrivée
+        </h3>
+        <div class="info-value">{{ route_data()!.arrivee }}</div>
+        @if (route_data()!.pointArrivee) {
+          <div class="info-sub">{{ route_data()!.pointArrivee }}</div>
+        }
+      </div>
+
+      <!-- Créée le -->
+      <div class="info-card">
+        <h3 class="info-card-title">Créée le</h3>
+        <div class="info-value">
+          {{ route_data()!.createdAt | date:'dd MMMM yyyy' }}
+        </div>
+      </div>
+    </div>
+
+  }
+</div>

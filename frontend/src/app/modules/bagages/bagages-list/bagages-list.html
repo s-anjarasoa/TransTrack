@@ -1,0 +1,80 @@
+<div class="page">
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Gestion des bagages</h1>
+        <p class="page-subtitle">Tous les bagages enregistrés dans votre société</p>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des bagages...</p>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Étiquette</th>
+            <th>Type de bagage</th>
+            <th>Poids</th>
+            <th>Supplément</th>
+            <th>Réservation</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (b of bagages(); track b.id) {
+            <tr>
+              <td>
+                <span class="badge-code">
+                  <mat-icon class="code-icon">qr_code</mat-icon>
+                  {{ b.numeroEtiquette }}
+                </span>
+              </td>
+              <td>
+                <div class="type-cell">
+                  <mat-icon [class]="'type-icon type-' + b.type.toLowerCase()">
+                    {{ getTypeIcon(b.type) }}
+                  </mat-icon>
+                  <span class="type-label">{{ getTypeLabel(b.type) }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="weight-text">{{ b.poids }} <small>kg</small></span>
+              </td>
+              <td>
+                @if (b.supplementPrix > 0) {
+                  <span class="price-badge price-extra">
+                    +{{ b.supplementPrix | number }} Ar
+                  </span>
+                } @else {
+                  <span class="price-badge price-free">
+                    Gratuit
+                  </span>
+                }
+              </td>
+              <td>
+                <span class="reservation-link">#{{ b.reservationId }}</span>
+              </td>
+              <td class="cell-muted">{{ b.description || '—' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <mat-icon class="empty-icon">luggage</mat-icon>
+                  <h3>Aucun bagage enregistré</h3>
+                  <p>Les bagages ajoutés lors des réservations apparaîtront ici.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

@@ -1,0 +1,61 @@
+<div class="dialog-backdrop" (click)="cancel()">
+  <div
+    class="dialog-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="reason-dialog-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="dialog-icon">
+      <mat-icon>pause_circle</mat-icon>
+    </div>
+
+    <h3 id="reason-dialog-title" class="dialog-title">{{ title }}</h3>
+
+    @if (message) {
+      <p class="dialog-text">{{ message }}</p>
+    }
+
+    <div class="dialog-field">
+      <label for="reason-input">Motif <span class="required">*</span></label>
+      <textarea
+        id="reason-input"
+        class="dialog-textarea"
+        rows="4"
+        [maxLength]="maxLength"
+        [placeholder]="placeholder"
+        [formControl]="reason"
+        [class.dialog-textarea-error]="touched && tooShort"
+      ></textarea>
+      <div class="dialog-field-footer">
+        @if (touched && tooShort) {
+          <span class="dialog-error">Le motif doit contenir au moins {{ minLength }} caractères.</span>
+        } @else {
+          <span></span>
+        }
+        <span class="dialog-counter">{{ reason.value.length }}/{{ maxLength }}</span>
+      </div>
+    </div>
+
+    @if (errorMessage) {
+      <div class="dialog-alert">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    <div class="dialog-actions">
+      <button type="button" class="btn-ghost" (click)="cancel()" [disabled]="loading">
+        Annuler
+      </button>
+      <button type="button" class="btn-confirm" (click)="confirm()" [disabled]="loading">
+        @if (loading) {
+          <span class="btn-spinner"></span>
+          <span>En cours…</span>
+        } @else {
+          <span>{{ confirmLabel }}</span>
+        }
+      </button>
+    </div>
+  </div>
+</div>

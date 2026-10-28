@@ -1,0 +1,128 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Gestion des Clients</h1>
+      <p class="page-subtitle">{{ total() }} client(s) enregistré(s) dans la base</p>
+    </div>
+    <a routerLink="/clients/new" class="btn-primary">
+      <mat-icon>add</mat-icon>
+      <span>Nouveau Client</span>
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des clients...</p>
+    </div>
+  } @else {
+
+    <!-- ✅ KPI STRIP -->
+    <div class="stat-strip">
+      <div class="stat-tile">
+        <div class="stat-icon-wrapper"><mat-icon>person</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().total }}</span>
+          <span class="stat-lbl">Total Clients</span>
+        </div>
+      </div>
+      <div class="stat-tile stat-tile-success">
+        <div class="stat-icon-wrapper"><mat-icon>badge</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().avecCin }}</span>
+          <span class="stat-lbl">Avec CIN</span>
+        </div>
+      </div>
+      <div class="stat-tile stat-tile-info">
+        <div class="stat-icon-wrapper"><mat-icon>flight</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().avecPassport }}</span>
+          <span class="stat-lbl">Avec Passeport</span>
+        </div>
+      </div>
+      <div class="stat-tile stat-tile-warning">
+        <div class="stat-icon-wrapper"><mat-icon>location_on</mat-icon></div>
+        <div class="stat-content">
+          <span class="stat-num">{{ stats().avecAdresse }}</span>
+          <span class="stat-lbl">Avec Adresse</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ TOOLBAR RECHERCHE -->
+    <div class="toolbar">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Rechercher un client (Nom, Email, CIN...)" 
+          [value]="searchTerm()" 
+          (input)="onSearch($event)"
+        />
+        @if (searchTerm()) {
+          <button type="button" class="search-clear" (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- TABLEAU -->
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>CIN</th>
+            <th>Adresse</th>
+            <th>Passeport</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (client of clients(); track client.id) {
+            <tr class="table-row">
+              <td>
+                <div class="user-cell">
+                  <div class="avatar">{{ getInitials(client) }}</div>
+                  <div class="user-info">
+                    <span class="user-name">{{ clientName(client) }}</span>
+                    <span class="user-email">{{ client.user?.email }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <code class="badge-code">{{ client.CIN || 'Non renseigné' }}</code>
+              </td>
+              <td class="text-muted">{{ client.address || '—' }}</td>
+              <td class="text-muted">{{ client.passport || '—' }}</td>
+              <td class="cell-action">
+                <div class="action-buttons">
+                  <a [routerLink]="['/clients', client.id]" class="icon-btn btn-view" title="Voir les détails">
+                    <mat-icon>visibility</mat-icon>
+                  </a>
+                  <a [routerLink]="['/clients', client.id, 'edit']" class="icon-btn btn-edit" title="Modifier">
+                    <mat-icon>edit</mat-icon>
+                  </a>
+                  <button type="button" (click)="deleteClient(client.id)" class="icon-btn btn-delete" title="Supprimer">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="cell-empty">
+                <div class="empty-state">
+                  <mat-icon class="empty-icon">search_off</mat-icon>
+                  <p>Aucun client trouvé.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

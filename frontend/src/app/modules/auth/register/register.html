@@ -1,0 +1,272 @@
+<div class="page-wrap">
+  <div class="card-shell">
+
+    <!-- Panneau gauche - Branding -->
+    <div class="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between p-12 branding-panel">
+      <div class="branding-bg"></div>
+
+      <div class="relative z-10">
+        <div class="flex items-center gap-3">
+          <div class="logo-circle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/>
+              <path d="M12 3v18" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="text-2xl font-bold tracking-tight text-white">TransTrack</span>
+        </div>
+        <p class="mt-2 text-sm text-cyan-200/80 tracking-wide">
+          Madagascar · Transport Multimodal
+        </p>
+      </div>
+
+      <div class="relative z-10 flex-1 flex flex-col justify-center">
+        <h2 class="text-4xl font-bold text-white mb-4 leading-tight">
+          Rejoignez<br>TransTrack
+        </h2>
+        <p class="text-cyan-100/90 text-lg leading-relaxed max-w-sm mb-8">
+          Créez votre compte pour <span class="font-semibold text-white">réserver</span> et
+          <span class="font-semibold text-white">suivre</span> vos trajets, tous modes confondus.
+        </p>
+
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="9"/>
+              </svg>
+            </div>
+            <span class="text-cyan-50">Inscription gratuite</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="text-cyan-50">Réservation en quelques clics</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="text-cyan-50">Données protégées</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panneau droit - Formulaire -->
+    <div class="flex-1 flex items-center justify-center px-8 py-10 bg-white">
+      <div class="w-full max-w-sm">
+
+        <div class="lg:hidden mb-6 text-center">
+          <div class="logo-circle inline-flex items-center justify-center mb-3">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00BCD4" stroke-width="2.5">
+              <path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/>
+              <path d="M12 3v18" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900">TransTrack</h1>
+        </div>
+
+        <div class="text-center mb-6">
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Créer un compte</h2>
+          <p class="text-gray-500">Inscrivez-vous, c'est gratuit</p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
+          <!-- Prénom / Nom -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="form-group">
+              <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1.5">Prénom</label>
+              <input
+                type="text"
+                id="firstName"
+                formControlName="firstName"
+                class="custom-input px-4"
+                placeholder="Prénom"
+                [class.input-error]="form.get('firstName')?.invalid && form.get('firstName')?.touched"
+              />
+              @if (form.get('firstName')?.hasError('required') && form.get('firstName')?.touched) {
+                <p class="mt-1.5 text-sm text-red-500">Requis</p>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1.5">Nom</label>
+              <input
+                type="text"
+                id="lastName"
+                formControlName="lastName"
+                class="custom-input px-4"
+                placeholder="Nom"
+                [class.input-error]="form.get('lastName')?.invalid && form.get('lastName')?.touched"
+              />
+              @if (form.get('lastName')?.hasError('required') && form.get('lastName')?.touched) {
+                <p class="mt-1.5 text-sm text-red-500">Requis</p>
+              }
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">Adresse email</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <input
+                type="email"
+                id="email"
+                formControlName="email"
+                class="custom-input pl-11 pr-4"
+                placeholder="vous@gmail.com"
+                autocomplete="email"
+                [class.input-error]="form.get('email')?.invalid && form.get('email')?.touched"
+              />
+            </div>
+            @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+              <p class="mt-1.5 text-sm text-red-500">L'email est requis</p>
+            }
+            @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+              <p class="mt-1.5 text-sm text-red-500">Format d'email invalide</p>
+            }
+          </div>
+
+          <!-- Mot de passe -->
+          <div class="form-group">
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">Mot de passe</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                id="password"
+                formControlName="password"
+                class="custom-input pl-11 pr-12"
+                placeholder="8 caractères minimum"
+                autocomplete="new-password"
+                [class.input-error]="form.get('password')?.invalid && form.get('password')?.touched"
+              />
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                (click)="togglePassword()"
+                [attr.aria-label]="showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+              >
+                @if (!showPassword()) {
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                } @else {
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+              <p class="mt-1.5 text-sm text-red-500">Le mot de passe est requis</p>
+            }
+            @if (form.get('password')?.hasError('minlength') && form.get('password')?.touched) {
+              <p class="mt-1.5 text-sm text-red-500">8 caractères minimum</p>
+            }
+          </div>
+
+          <!-- Confirmation mot de passe -->
+          <div class="form-group">
+            <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1.5">Confirmer le mot de passe</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+              <input
+                [type]="showConfirmPassword() ? 'text' : 'password'"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                class="custom-input pl-11 pr-12"
+                placeholder="Retapez votre mot de passe"
+                autocomplete="new-password"
+                [class.input-error]="form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched"
+              />
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                (click)="toggleConfirmPassword()"
+                [attr.aria-label]="showConfirmPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+              >
+                @if (!showConfirmPassword()) {
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                } @else {
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched) {
+              <p class="mt-1.5 text-sm text-red-500">Les mots de passe ne correspondent pas</p>
+            }
+          </div>
+
+          @if (errorMessage()) {
+            <div class="rounded-lg bg-red-50 border border-red-200 p-3">
+              <p class="text-sm text-red-600 flex items-center gap-2">
+                <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                {{ errorMessage() }}
+              </p>
+            </div>
+          }
+
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-cyan-900 to-cyan-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-cyan-700/30 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="loading()"
+          >
+            @if (loading()) {
+              <mat-spinner diameter="20" color="white"></mat-spinner>
+              <span>Création du compte...</span>
+            } @else {
+              <span>Créer un compte</span>
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            }
+          </button>
+
+          <p class="text-center text-sm text-gray-600 mt-4">
+            Déjà un compte ?
+            
+            <a routerLink="/auth/login" class="font-semibold text-cyan-600 hover:text-cyan-700 transition-colors">
+              Se connecter
+            </a>
+          </p>
+          <p class="text-center text-xs text-gray-400 mt-2">
+              Vous êtes un agent ?
+              <a routerLink="/auth/register-agent" class="font-medium text-cyan-600 hover:text-cyan-700">
+                Inscrivez-vous avec votre code
+              </a>
+           </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

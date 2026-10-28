@@ -1,0 +1,88 @@
+<div class="page">
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de votre profil IA...</p>
+    </div>
+  } @else if (preferences(); as prefs) {
+    
+    <div class="header">
+      <div class="header-icon">
+        <mat-icon>psychology</mat-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Mes Préférences</h1>
+        <p class="page-subtitle">Découvrez comment l'IA personnalise vos voyages.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Profil de préférence</h2>
+        <button class="btn-reset" (click)="resetPreferences()">
+          <mat-icon>refresh</mat-icon> Réinitialiser
+        </button>
+      </div>
+
+      <div class="sliders">
+        <!-- PRIX -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div class="label-wrapper">
+              <mat-icon class="icon-price">payments</mat-icon>
+              <span>Prix</span>
+            </div>
+            <span class="percentage">{{ (prefs.price * 100).toFixed(0) }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-price" [style.width.%]="prefs.price * 100"></div>
+          </div>
+          <p class="slider-hint">Privilégie les trajets les plus économiques.</p>
+        </div>
+
+        <!-- DISTANCE -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div class="label-wrapper">
+              <mat-icon class="icon-distance">route</mat-icon>
+              <span>Distance</span>
+            </div>
+            <span class="percentage">{{ (prefs.distance * 100).toFixed(0) }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-distance" [style.width.%]="prefs.distance * 100"></div>
+          </div>
+          <p class="slider-hint">Privilégie les trajets les plus courts (moins de km).</p>
+        </div>
+
+        <!-- DURÉE -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div class="label-wrapper">
+              <mat-icon class="icon-duration">schedule</mat-icon>
+              <span>Durée</span>
+            </div>
+            <span class="percentage">{{ (prefs.duration * 100).toFixed(0) }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-duration" [style.width.%]="prefs.duration * 100"></div>
+          </div>
+          <p class="slider-hint">Privilégie les trajets les plus rapides.</p>
+        </div>
+      </div>
+      
+      <!-- Explication IA (Transparence) -->
+      <div class="info-box">
+        <mat-icon>lightbulb</mat-icon>
+        <div>
+          <strong>Comment ça marche ?</strong>
+          <p>
+            Ces pourcentages sont calculés par un modèle de <strong>régression logistique (Logit Conditionnel)</strong>. 
+            À chaque réservation, l'algorithme analyse le voyage que vous avez choisi parmi les suggestions 
+            et ajuste ces poids pour vous proposer des trajets de plus en plus adaptés à vos goûts.
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

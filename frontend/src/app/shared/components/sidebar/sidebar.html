@@ -1,0 +1,140 @@
+<aside
+  class="sidebar"
+  [class.sidebar-open]="mobileOpen"
+  [class.sidebar-collapsed]="isCollapsed"
+  aria-label="Navigation principale"
+>
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- HEADER                                                    -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="sidebar-header">
+    <div
+      class="logo-wrapper"
+      (click)="onToggleCollapse()"
+      [title]="isCollapsed ? 'Étendre' : 'Réduire'"
+      role="button"
+      tabindex="0"
+    >
+      <div class="logo-circle">
+        <mat-icon>commute</mat-icon>
+      </div>
+      <span class="logo-text" [class.hidden]="isCollapsed">TransTrack</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- NAVIGATION                                                -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <nav class="sidebar-nav" role="navigation">
+    @for (item of filteredMenu(); track item.label; let i = $index) {
+
+      <!-- ─────────── ITEM SIMPLE ─────────── -->
+      @if (!item.items) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="nav-active"
+          class="nav-item"
+          (click)="navigateAndClose(item.route)"
+          [class.nav-item-collapsed]="isCollapsed"
+          [attr.aria-label]="item.label"
+        >
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label" [class.hidden]="isCollapsed">{{ item.label }}</span>
+
+          @if (item.badge && item.badge > 0) {
+            <span class="nav-badge" [class.hidden]="isCollapsed">
+              {{ item.badge > 9 ? '9+' : item.badge }}
+            </span>
+            <!-- Si le menu est réduit, on affiche un petit point à la place du chiffre -->
+            @if (isCollapsed) {
+              <span class="nav-badge-dot"></span>
+            }
+          }
+
+          @if (isCollapsed) {
+            <span class="nav-tooltip" role="tooltip">{{ item.label }}</span>
+          }
+        </a>
+      }
+
+      <!-- ─────────── GROUPE ─────────── -->
+      @else {
+        @if (i > 0 && !isCollapsed) {
+          <div class="nav-separator"></div>
+        }
+        <div class="nav-group" [class.is-expanded]="item.expanded">
+          <button
+            type="button"
+            class="nav-item group-header"
+            [class.nav-item-collapsed]="isCollapsed"
+            (click)="toggleGroup(item, $event)"
+            [attr.aria-expanded]="item.expanded"
+            [attr.aria-label]="item.label"
+          >
+            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+            <span class="nav-label" [class.hidden]="isCollapsed">{{ item.label }}</span>
+
+            <mat-icon
+              class="chevron-icon"
+              [class.hidden]="isCollapsed"
+              [class.chevron-open]="item.expanded"
+            >expand_more</mat-icon>
+
+            @if (isCollapsed) {
+              <span class="nav-tooltip" role="tooltip">{{ item.label }}</span>
+            }
+          </button>
+
+          <!-- SOUS-MENUS -->
+          <div class="submenu-container" [class.submenu-collapsed-flyout]="isCollapsed">
+            @if (isCollapsed) {
+              <div class="flyout-header">{{ item.label }}</div>
+            }
+            @for (sub of item.items; track sub.route) {
+              <a
+                [routerLink]="sub.route"
+                routerLinkActive="sub-nav-active"
+                class="sub-nav-item"
+                (click)="navigateAndClose(sub.route)"
+              >
+                @if (sub.icon) {
+                  <mat-icon class="sub-icon">{{ sub.icon }}</mat-icon>
+                } @else {
+                  <span class="sub-dot" aria-hidden="true"></span>
+                }
+                <span class="sub-label">{{ sub.label }}</span>
+              </a>
+            }
+          </div>
+        </div>
+      }
+    }
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- FOOTER                                                    -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="sidebar-footer">
+    <button
+      type="button"
+      class="logout-btn"
+      (click)="logout()"
+      [class.logout-btn-collapsed]="isCollapsed"
+      aria-label="Déconnexion"
+    >
+      <mat-icon>logout</mat-icon>
+      <span class="nav-label" [class.hidden]="isCollapsed">Déconnexion</span>
+
+      @if (isCollapsed) {
+        <span class="nav-tooltip" role="tooltip">Déconnexion</span>
+      }
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BACKDROP (mobile)                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+@if (mobileOpen) {
+  <div class="sidebar-backdrop" (click)="closeMobile.emit()" aria-hidden="true"></div>
+}

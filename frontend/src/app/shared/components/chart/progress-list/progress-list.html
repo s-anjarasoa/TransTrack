@@ -1,0 +1,19 @@
+<div class="progress-list">
+  @for (item of items; track item.label) {
+    <div class="progress-row">
+      <div class="progress-info">
+        <span class="progress-label">{{ item.label }}</span>
+        <span class="progress-val">{{ item.value }}</span>
+      </div>
+      <div class="progress-track">
+        <div
+          class="progress-fill"
+          [style.width.%]="getPercentage(item.value, item.max)"
+          [style.background]="item.color || '#0EA5E9'"
+        ></div>
+      </div>
+    </div>
+  } @empty {
+    <div class="progress-empty">Aucune donnée disponible</div>
+  }
+</div>

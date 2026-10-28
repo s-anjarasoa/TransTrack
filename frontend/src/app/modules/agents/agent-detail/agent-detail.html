@@ -1,0 +1,297 @@
+<div class="page">
+
+  <!-- ============================================================
+       LOADING / EMPTY
+       ============================================================ -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement du profil...</p>
+    </div>
+  } @else if (!agent()) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">person_off</mat-icon>
+      <h3>Agent introuvable</h3>
+      <p>Cet agent n'existe pas ou n'est plus accessible.</p>
+      <a routerLink="/agents" class="btn-primary">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Retour à la liste</span>
+      </a>
+    </div>
+  } @else {
+
+    <!-- ============================================================
+         HERO HEADER
+         ============================================================ -->
+    <a routerLink="/agents" class="back-link">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Retour aux agents</span>
+    </a>
+
+    <div class="hero">
+      <div class="hero-avatar" [class]="statusAvatarClass(agent()!.status)">
+        {{ agentInitials() }}
+      </div>
+
+      <div class="hero-info">
+        <div class="hero-tags">
+          <span class="type-badge">{{ agent()!.type | agentTypeLabel }}</span>
+          <span class="status-chip" [class]="statusBadgeClass(agent()!.status)">
+            <span class="status-dot"></span>
+            {{ statusLabel(agent()!.status) }}
+          </span>
+        </div>
+
+        <h1 class="hero-title">
+          {{ agent()!.user?.firstName }} {{ agent()!.user?.lastName }}
+        </h1>
+
+        <p class="hero-subtitle">
+          <mat-icon>business</mat-icon>
+          {{ agent()!.societe?.name || 'Sans société rattachée' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         CONTENU
+         ============================================================ -->
+    <div class="content-grid">
+
+      <!-- ============ COLONNE GAUCHE : INFORMATIONS ============ -->
+      <div class="content-main">
+        <div class="detail-card">
+          <div class="card-header">
+            <div class="card-title">
+              <mat-icon>badge</mat-icon>
+              <span>Informations personnelles</span>
+            </div>
+          </div>
+
+          <dl class="info-grid">
+            <div class="info-row">
+              <dt>
+                <mat-icon>mail</mat-icon>
+                Email
+              </dt>
+              <dd>
+                <a href="mailto:{{ agent()!.user?.email }}" class="link">
+                  {{ agent()!.user?.email }}
+                </a>
+              </dd>
+            </div>
+
+            <div class="info-row">
+              <dt>
+                <mat-icon>call</mat-icon>
+                Téléphone
+              </dt>
+              <dd>
+                @if (agent()!.phone) {
+                  <a href="tel:{{ agent()!.phone }}" class="link">
+                    {{ agent()!.phone }}
+                  </a>
+                } @else {
+                  <span class="muted">Non renseigné</span>
+                }
+              </dd>
+            </div>
+
+            <div class="info-row">
+              <dt>
+                <mat-icon>location_on</mat-icon>
+                Adresse
+              </dt>
+              <dd>
+                @if (agent()!.address) {
+                  {{ agent()!.address }}
+                } @else {
+                  <span class="muted">Non renseignée</span>
+                }
+              </dd>
+            </div>
+
+            <div class="info-row">
+              <dt>
+                <mat-icon>credit_card</mat-icon>
+                CIN
+              </dt>
+              <dd>
+                @if (agent()!.CIN) {
+                  <code class="code-chip">{{ agent()!.CIN }}</code>
+                } @else {
+                  <span class="muted">Non renseigné</span>
+                }
+              </dd>
+            </div>
+
+            <div class="info-row info-row-full">
+              <dt>
+                <mat-icon>work</mat-icon>
+                Poste occupé
+              </dt>
+              <dd>
+                <span class="type-badge">{{ agent()!.type | agentTypeLabel }}</span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- ============ COLONNE DROITE : MODÉRATION ============ -->
+      @if (canModerate) {
+        <aside class="content-side">
+          <div class="detail-card action-card" [class]="actionCardClass()">
+            <div class="card-header">
+              <div class="card-title">
+                <mat-icon>admin_panel_settings</mat-icon>
+                <span>Modération</span>
+              </div>
+            </div>
+
+            <!-- Erreur -->
+            @if (errorMessage()) {
+              <div class="alert-error">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ errorMessage() }}</span>
+              </div>
+            }
+
+            <!-- ============ CAS 1 : EN_ATTENTE ============ -->
+            @if (agent()!.status === AgentStatus.EN_ATTENTE) {
+              <div class="info-banner info-banner-info">
+                <mat-icon>info</mat-icon>
+                <div>
+                  <strong>Demande en attente</strong>
+                  <p>Validez cet agent pour lui envoyer un code d'invitation.</p>
+                </div>
+              </div>
+
+              <div class="action-stack">
+                <button
+                  type="button"
+                  class="btn-action btn-success"
+                  (click)="sendCode()"
+                  [disabled]="actionLoading()">
+                  @if (actionLoading()) {
+                    <span>Envoi en cours...</span>
+                  } @else {
+                    <mat-icon>send</mat-icon>
+                    <span>Valider et envoyer le code</span>
+                  }
+                </button>
+
+                <button
+                  type="button"
+                  class="btn-action btn-danger-outline"
+                  (click)="reject()"
+                  [disabled]="actionLoading()">
+                  <mat-icon>cancel</mat-icon>
+                  <span>Rejeter la demande</span>
+                </button>
+              </div>
+            }
+
+            <!-- ============ CAS 2 : PRE_VALIDE ============ -->
+            @if (agent()!.status === AgentStatus.PRE_VALIDE) {
+              <div class="info-banner info-banner-warning">
+                <mat-icon>mark_email_read</mat-icon>
+                <div>
+                  <strong>Code envoyé</strong>
+                  <p>L'agent doit saisir le code d'invitation pour finaliser son inscription.</p>
+                </div>
+              </div>
+
+              <div class="action-stack">
+                <button
+                  type="button"
+                  class="btn-action btn-warn"
+                  (click)="validate()"
+                  [disabled]="actionLoading()">
+                  <mat-icon>refresh</mat-icon>
+                  <span>Renvoyer le code</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="btn-action btn-danger-outline"
+                  (click)="reject()"
+                  [disabled]="actionLoading()">
+                  <mat-icon>cancel</mat-icon>
+                  <span>Rejeter</span>
+                </button>
+              </div>
+            }
+
+            <!-- ============ CAS 3 : VALIDE ============ -->
+            @if (agent()!.status === AgentStatus.VALIDE) {
+              <div class="info-banner info-banner-success">
+                <mat-icon>verified</mat-icon>
+                <div>
+                  <strong>Agent actif</strong>
+                  <p>Cet agent peut se connecter et gérer la société.</p>
+                </div>
+              </div>
+
+              <div class="action-stack">
+                <button
+                  type="button"
+                  class="btn-action btn-warn"
+                  (click)="suspend()"
+                  [disabled]="actionLoading()">
+                  <mat-icon>pause_circle</mat-icon>
+                  <span>Suspendre l'agent</span>
+                </button>
+              </div>
+            }
+
+            <!-- ============ CAS 4 : SUSPENDU ============ -->
+            @if (agent()!.status === AgentStatus.SUSPENDU) {
+              <div class="info-banner info-banner-danger">
+                <mat-icon>block</mat-icon>
+                <div>
+                  <strong>Compte suspendu</strong>
+                  <p>Cet agent ne peut plus accéder à la plateforme.</p>
+                </div>
+              </div>
+
+              <div class="action-stack">
+                <button
+                  type="button"
+                  class="btn-action btn-success"
+                  (click)="validate()"
+                  [disabled]="actionLoading()">
+                  <mat-icon>play_circle</mat-icon>
+                  <span>Réactiver l'agent</span>
+                </button>
+              </div>
+            }
+
+            <!-- ============ CAS 5 : REJETE ============ -->
+            @if (agent()!.status === AgentStatus.REJETE) {
+              <div class="info-banner info-banner-danger">
+                <mat-icon>cancel</mat-icon>
+                <div>
+                  <strong>Demande rejetée</strong>
+                  <p>Cette demande a été rejetée.</p>
+                </div>
+              </div>
+            }
+          </div>
+        </aside>
+      }
+    </div>
+  }
+
+  @if (showReasonDialog()) {
+    <app-reason-dialog
+      [title]="reasonDialogTitle()"
+      [message]="reasonDialogMessage()"
+      [confirmLabel]="reasonDialogConfirmLabel()"
+      [loading]="actionLoading()"
+      [errorMessage]="errorMessage()"
+      (confirmed)="onReasonConfirmed($event)"
+      (cancelled)="onReasonCancelled()"
+    />
+  }
+</div>

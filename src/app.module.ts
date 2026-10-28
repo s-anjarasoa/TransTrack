@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
@@ -27,84 +28,87 @@ import { Billet } from './entities/billet.entity';
 import { Paiement } from './entities/paiement.entity';
 import { Bagage } from './entities/bagage.entity';
 import { Notification } from './entities/notification.entity';
-import { MoyensTransService } from './modules/moyens-trans/moyens-trans.service';
 import { MoyensTransModule } from './modules/moyens-trans/moyens-trans.module';
-import { VehiculeService } from './modules/vehicule/vehicule.service';
 import { VehiculeModule } from './modules/vehicule/vehicule.module';
-import { VoyageController } from './modules/voyage/voyage.controller';
 import { VoyageModule } from './modules/voyage/voyage.module';
-import { TarifsService } from './modules/tarifs/tarifs.service';
-import { TarifsController } from './modules/tarifs/tarifs.controller';
 import { TarifsModule } from './modules/tarifs/tarifs.module';
-import { RoutesService } from './modules/routes/routes.service';
 import { RoutesModule } from './modules/routes/routes.module';
-import { PaymentController } from './modules/payements/payments.controller';
 import { PaymentModule } from './modules/payements/payements.module';
-import { ReservationModule} from './modules/reservations/reservations.module';
-import { NotificationsService } from './modules/notifications/notifications.service';
+import { ReservationModule } from './modules/reservations/reservations.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
-import { BagagesController } from './modules/bagages/bagages.controller';
 import { BagagesModule } from './modules/bagages/bagages.module';
-import { BilletService } from './modules/billets/billets.service';
 import { BilletModule } from './modules/billets/billets.module';
-import { BilletController } from './modules/billets/billets.controller';
 import { VoyageStatusHistory } from './entities/voyage-status-history.entity';
 import { MailModule } from './mail/mail.module';
 import { LocationsModule } from './modules/locations/locations.module';
 import { RouteStop } from './entities/route-stop.entity';
 import { Location } from './entities/location.entity';
-import { ConfigModule } from '@nestjs/config';
 import { RoutingModule } from './modules/routing/routing.module';
 import { RecommendationModule } from './modules/recommendation/recommendation.module';
-
-
-
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'root',
-      database: 'db_trans',
-      autoLoadEntities: true,
-      entities: [
-        Role, 
-        User,
-        Agent,
-        Societe,
-        Client,
-        Abonnement,
-        Status,
-        PasswordResetToken,
-        MoyenTrans,
-        Vehicule,
-        Route,
-        Tarif,
-        Voyage,
-        Reservation,
-        Billet,
-        Paiement,
-        Bagage,
-        Notification,
-        VoyageStatusHistory,
-        RouteStop,
-        Location,
-         
-        
-      ],
-      synchronize: true,
-      logging: true,
-    }),AuthModule, RolesModule, UsersModule, ClientsModule, AgentsModule, SocietesModule, 
-      AbonnementsModule, MoyensTransModule, VehiculeModule, VoyageModule,LocationsModule, 
-      TarifsModule, RoutesModule, PaymentModule, ReservationModule, NotificationsModule, 
-      BagagesModule,BilletModule, MailModule,RoutingModule,RecommendationModule,  ],
-      controllers: [AppController],
-      providers: [AppService],
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const dbUrl = configService.get<string>('DATABASE_URL');
+        const isProduction = process.env.NODE_ENV === 'production';
+
+        if (dbUrl) {
+          return {
+            type: 'postgres',
+            url: dbUrl,
+            autoLoadEntities: true,
+            synchronize: true, // Désactiver en prod après première synchronisation si souhaité
+            ssl: {
+              rejectUnauthorized: false, // Obligatoire pour Neon
+            },
+          };
+        }
+
+        // Repli local en développement si DATABASE_URL n'est pas définie
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST', 'localhost'),
+          port: configService.get<number>('DB_PORT', 5432),
+          username: configService.get<string>('DB_USERNAME', 'postgres'),
+          password: configService.get<string>('DB_PASSWORD', 'root'),
+          database: configService.get<string>('DB_NAME', 'db_trans'),
+          autoLoadEntities: true,
+          synchronize: true,
+          logging: !isProduction,
+        };
+      },
+    }),
+    AuthModule,
+    RolesModule,
+    UsersModule,
+    ClientsModule,
+    AgentsModule,
+    SocietesModule,
+    AbonnementsModule,
+    MoyensTransModule,
+    VehiculeModule,
+    VoyageModule,
+    LocationsModule,
+    TarifsModule,
+    RoutesModule,
+    PaymentModule,
+    ReservationModule,
+    NotificationsModule,
+    BagagesModule,
+    BilletModule,
+    MailModule,
+    RoutingModule,
+    RecommendationModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
+

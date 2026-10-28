@@ -25,32 +25,42 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Validation
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
-  
+
+  // Liste des origines autorisées pour le CORS
+  const allowedOrigins = [
+    'http://localhost:4200',
+    'http://localhost:4300',
+    'http://127.0.0.1:4200',
+    'http://127.0.0.1:4300',
+    'https://trans-track-ivory.vercel.app',
+  ];
+
+  if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL.replace(/\/$/, ''));
+  }
+
   // CORS
   app.enableCors({
-    origin: [
-      'http://localhost:4200',
-      'http://localhost:4300',
-      'http://127.0.0.1:4200',
-      'http://127.0.0.1:4300',
-    ],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
   });
 
-  // Port 
+  // Écoute du port Render
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
-  logger.log(`Serveur démarré sur http://localhost:${port}`);
-  logger.log(` API: http://localhost:${port}/api`);
+  logger.log(`Serveur démarré sur le port ${port}`);
+  logger.log(`API accessible sur http://0.0.0.0:${port}/api`);
 }
 
 bootstrap();

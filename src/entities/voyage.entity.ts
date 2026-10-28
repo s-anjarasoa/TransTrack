@@ -116,5 +116,5 @@ export class Voyage {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  iaScore?: number;
+  
 }

@@ -1,6 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, OneToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Role } from './role.entity';
-
+import { Client } from './client.entity';
+import { Agent } from './agent.entity';
 
 @Entity('users')
 export class User {
@@ -11,6 +13,7 @@ export class User {
   email!: string;
 
   @Column()
+  @Exclude()
   password!: string;
 
   @Column({ nullable: true })
@@ -28,6 +31,10 @@ export class User {
   @Column({ default: true })
   isActive!: boolean;
 
+  // ✅ AJOUTER ce champ
+  @Column({ default: false })
+  profileCompleted!: boolean;
+
   @Column({ nullable: true })
   lastLogin!: Date;
 
@@ -37,5 +44,9 @@ export class User {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  
+  @OneToOne(() => Client, (client) => client.user)
+  client!: Client;
+
+  @OneToOne(() => Agent, (agent) => agent.user)
+  agent!: Agent;
 }

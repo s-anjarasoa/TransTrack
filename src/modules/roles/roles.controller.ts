@@ -61,20 +61,16 @@ export class RolesController {
     return { count };
   }
 
-  @Get('simulation/registration-order')
+    @Get('simulation/registration-order')
   async getRoleByRegistrationOrder(): Promise<{ role: Role; userCount: number; message: string }> {
     const userCount = await this.rolesService.getUserCount();
     const role = await this.rolesService.getRoleByRegistrationOrder();
-    
-    let message = '';
-    if (userCount === 0) {
-      message = 'Le prochain utilisateur sera ADMINISTRATEUR';
-    } else if (userCount === 1) {
-      message = 'Le prochain utilisateur sera AGENT';
-    } else {
-      message = `Le prochain utilisateur sera CLIENT (${userCount + 1}ème utilisateur)`;
-    }
-    
+
+    const message =
+      userCount === 0
+        ? 'Le prochain utilisateur sera ADMINISTRATEUR'
+        : `Le prochain utilisateur sera CLIENT (${userCount + 1}ème utilisateur)`;
+
     return {
       role,
       userCount,

@@ -21,6 +21,8 @@ export class RolesService implements OnModuleInit {
 
   private async initializeDefaultRoles() {
     const defaultRoles = [
+      // ✅ AJOUTER : Rôle PENDING (utilisateur en attente de complétion)
+      { name: 'PENDING', description: 'Utilisateur en attente de complétion de profil', isDefault: false },
       { name: 'ADMIN', description: 'Administrateur', isDefault: false },
       { name: 'AGENT', description: 'Agent', isDefault: false },
       { name: 'CLIENT', description: 'Client', isDefault: true },
@@ -37,56 +39,37 @@ export class RolesService implements OnModuleInit {
       }
     }
   }
-
-  /**
-   * Récupérer le nombre total d'utilisateurs
-   */
+ 
   async getUserCount(): Promise<number> {
     return this.userRepository.count();
   }
-
-  /**
-   * Déterminer le rôle d'un nouvel utilisateur basé sur l'ordre d'inscription
-   * - 1er utilisateur : ADMIN
-   * - 2ème utilisateur : AGENT
-   * - 3ème et suivants : CLIENT
-   */
+  
   async getRoleByRegistrationOrder(): Promise<Role> {
     const userCount = await this.getUserCount();
-    
+
     this.logger.log(`Nombre d'utilisateurs existants: ${userCount}`);
-    
+
     if (userCount === 0) {
-      // Premier utilisateur = ADMIN
-      const adminRole = await this.roleRepository.findOne({ 
-        where: { name: 'ADMIN' } 
+      // ✅ Premier utilisateur = ADMIN
+      const adminRole = await this.roleRepository.findOne({
+        where: { name: 'ADMIN' },
       });
       if (!adminRole) {
         throw new NotFoundException('Rôle ADMIN non trouvé');
       }
       this.logger.log(` Attribution du rôle ADMIN (1er utilisateur)`);
       return adminRole;
-    } else if (userCount === 1) {
-      // Deuxième utilisateur = AGENT
-      const agentRole = await this.roleRepository.findOne({ 
-        where: { name: 'AGENT' } 
-      });
-      if (!agentRole) {
-        throw new NotFoundException('Rôle AGENT non trouvé');
-      }
-      this.logger.log(`Attribution du rôle AGENT (2ème utilisateur)`);
-      return agentRole;
-    } else {
-      // Troisième et suivants = CLIENT
-      const clientRole = await this.roleRepository.findOne({ 
-        where: { name: 'CLIENT' } 
-      });
-      if (!clientRole) {
-        throw new NotFoundException('Rôle CLIENT non trouvé');
-      }
-      this.logger.log(` Attribution du rôle CLIENT (${userCount + 1}ème utilisateur)`);
-      return clientRole;
     }
+
+    // ✅ Tous les suivants = PENDING (rôle définitif après complétion du profil)
+    const pendingRole = await this.roleRepository.findOne({
+      where: { name: 'PENDING' },
+    });
+    if (!pendingRole) {
+      throw new NotFoundException('Rôle PENDING non trouvé');
+    }
+    this.logger.log(` Attribution du rôle PENDING (${userCount + 1}ème utilisateur)`);
+    return pendingRole;
   }
 
   /**

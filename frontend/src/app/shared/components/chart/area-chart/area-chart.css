@@ -4,18 +4,23 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  
   overflow: hidden; 
+  /* ✅ Réduit légèrement le graphique sur les côtés */
+  padding: 10px 15px 0 15px; 
+  box-sizing: border-box;
 }
 
 .chart-svg {
   width: 100%;
   height: 100%; 
   display: block;
+  overflow: visible;
 }
 
 .chart-line {
   vector-effect: non-scaling-stroke;
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
   animation: drawLine 1.5s ease-out forwards;
 }
 
@@ -24,11 +29,21 @@
   opacity: 0;
 }
 
+.chart-dot {
+  opacity: 0;
+  animation: fadeArea 0.5s ease-out 1s forwards; 
+}
+
+.chart-value {
+  opacity: 0;
+  animation: fadeArea 0.5s ease-out 1.2s forwards; 
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
 .x-axis {
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
-  padding: 0 4px;
 }
 
 .x-label {
@@ -37,9 +52,21 @@
   font-weight: 500;
 }
 
+.chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #94A3B8;
+  font-size: 0.9rem;
+  background: #F8FAFC;
+  border-radius: 8px;
+  border: 1px dashed #E2E8F0;
+}
+
 @keyframes drawLine {
-  from { stroke-dasharray: 200; stroke-dashoffset: 200; }
-  to { stroke-dasharray: 200; stroke-dashoffset: 0; }
+  from { stroke-dashoffset: 500; }
+  to { stroke-dashoffset: 0; }
 }
 
 @keyframes fadeArea {

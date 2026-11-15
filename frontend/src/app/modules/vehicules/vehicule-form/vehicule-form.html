@@ -1,9 +1,7 @@
 <div class="modal-backdrop" (click)="cancel()">
   <div class="modal-card" (click)="$event.stopPropagation()">
 
-    <!-- ============================================================
-         HEADER
-         ============================================================ -->
+    <!-- HEADER -->
     <div class="modal-header">
       <div class="modal-header-left">
         <div class="modal-icon" [class.modal-icon-edit]="isEditMode()">
@@ -25,9 +23,7 @@
       </button>
     </div>
 
-    <!-- ============================================================
-         LOADING
-         ============================================================ -->
+    <!-- LOADING -->
     @if (checking()) {
       <div class="loading-state">
         <div class="spinner"></div>
@@ -35,9 +31,7 @@
       </div>
     } @else {
 
-      <!-- ============================================================
-           FORM
-           ============================================================ -->
+      <!-- FORM -->
       <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
 
         <!-- ============ Section 1 : Identification ============ -->
@@ -65,7 +59,6 @@
               }
             </div>
 
-            <!-- ✅ Moyen de transport avec aperçu -->
             <div class="field">
               <label for="moyenTransId">
                 Moyen de transport <span class="req">*</span>
@@ -90,7 +83,6 @@
                 <p class="field-error">Le moyen de transport est requis</p>
               }
 
-              <!-- ✅ Aperçu du moyen de transport sélectionné -->
               @if (selectedMoyenTrans(); as mt) {
                 <div class="transport-preview">
                   <div class="transport-icon">
@@ -156,7 +148,8 @@
             </div>
           </div>
 
-          <div class="grid-3">
+          <!-- ✅ MODIFIÉ : grid-2 au lieu de grid-3 car on a enlevé un champ -->
+          <div class="grid-2">
             <div class="field">
               <label for="capacite">
                 Capacité <span class="req">*</span>
@@ -185,17 +178,8 @@
                 placeholder="Ex: Blanc"
               />
             </div>
-
-            <div class="field">
-              <label for="numeroChassis">N° Châssis (VIN)</label>
-              <input
-                id="numeroChassis"
-                type="text"
-                formControlName="numeroChassis"
-                class="input"
-                placeholder="Optionnel"
-              />
-            </div>
+            
+            <!-- ✅ SUPPRIMÉ : Le champ N° Châssis (VIN) était ici -->
           </div>
         </div>
 
@@ -265,7 +249,7 @@
           </div>
         </div>
 
-        <!-- ============ Erreur API ============ -->
+        <!-- Erreur API -->
         @if (errorMessage()) {
           <div class="error-banner">
             <mat-icon>error_outline</mat-icon>
@@ -273,7 +257,7 @@
           </div>
         }
 
-        <!-- ============ Actions ============ -->
+        <!-- Actions -->
         <div class="modal-footer">
           <button type="button" class="btn-secondary" (click)="cancel()">
             Annuler

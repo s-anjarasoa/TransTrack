@@ -28,7 +28,7 @@ export type MenuItem = {
     RouterLink,
     RouterLinkActive,
     CommonModule,
-    MatIconModule,           // ✅ AJOUT
+    MatIconModule,           
   ],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
@@ -59,9 +59,6 @@ export class Sidebar implements OnInit, OnDestroy {
       route: '/dashboard',
       icon: 'dashboard',
     },
-    // ========================================================
-    // ✅ ESPACE CLIENT
-    // ========================================================
     {
       label: 'Trajet',
       route: '/reserver/search',
@@ -81,15 +78,13 @@ export class Sidebar implements OnInit, OnDestroy {
       roles: ['CLIENT'],
     },
    
-    // ========================================================
-    // ✅ ESPACE PRO (Admin & Agents)
-    // ========================================================
+  
     {
       label: 'Transport',
       icon: 'directions_bus',
       roles: ['ADMIN', 'AGENT'],
       items: [
-        { label: 'Moyens de transport', icon: 'commute',         route: '/moyens-trans' },
+        { label: 'Types de transport', icon: 'commute',         route: '/moyens-trans' },
         { label: 'Véhicules',           icon: 'local_shipping',  route: '/vehicules' },
         { label: 'Lieux géographiques', icon: 'place',           route: '/locations' },
         { label: 'Routes & Trajets',    icon: 'alt_route',       route: '/routes' },
@@ -120,21 +115,17 @@ export class Sidebar implements OnInit, OnDestroy {
        
       ],
     },
-    // ========================================================
-    // ✅ IA & ROUTAGE (Pour ton mémoire)
-    // ========================================================
+    
      {
-    label: 'Optimisation & Routage',           // ← ✅ Renommé (honnête : c'est de la RO)
-    icon: 'insights',                           // ← ✅ Icône plus adaptée
+    label: 'Optimisation & Routage',           
+    icon: 'insights',                           
     roles: ['ADMIN', 'AGENT'],
     items: [
       { label: 'Calcul d\'itinéraires', icon: 'route', route: '/routing' },
-      // 🔮 Futur : { label: 'Benchmark algorithmes', icon: 'science', route: '/routing/benchmark', roles: ['ADMIN'] },
+      //  Futur : { label: 'Benchmark algorithmes', icon: 'science', route: '/routing/benchmark', roles: ['ADMIN'] },
     ],
     },
-    // ========================================================
-    // ✅ TOUT LE MONDE
-    // ========================================================
+    
     /*{
       label: 'Notifications',
       route: '/notifications',
@@ -151,7 +142,7 @@ export class Sidebar implements OnInit, OnDestroy {
 
   filteredMenu = computed(() => {
     const userRole = this.userSig()?.role || '';
-    const unreadCount = this.inbox.unreadCount(); // Signal du service
+    const unreadCount = this.inbox.unreadCount(); 
 
     return this.menuItems
       .filter((item) => !item.roles || item.roles.includes(userRole))

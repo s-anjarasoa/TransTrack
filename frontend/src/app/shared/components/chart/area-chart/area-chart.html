@@ -1,24 +1,54 @@
 <div class="area-chart-container">
-  <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-    <defs>
-      <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" [attr.stop-color]="color" stop-opacity="0.3" />
-        <stop offset="100%" [attr.stop-color]="color" stop-opacity="0" />
-      </linearGradient>
-    </defs>
+  @if (data && data.length > 0) {
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+      <defs>
+        <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" [attr.stop-color]="color" stop-opacity="0.3" />
+          <stop offset="100%" [attr.stop-color]="color" stop-opacity="0" />
+        </linearGradient>
+      </defs>
 
-    <!-- La surface (Gradient) -->
-    @if (data.length > 0) {
+      <!-- La surface -->
       <polygon [attr.points]="areaPoints" fill="url(#areaGradient)" class="chart-area" />
+      
       <!-- La ligne -->
       <polyline [attr.points]="points" fill="none" [attr.stroke]="color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chart-line" />
-    }
-  </svg>
 
-  <!-- Les labels de l'axe X -->
-  <div class="x-axis">
-    @for (item of data; track item.label) {
-      <span class="x-label">{{ item.label }}</span>
-    }
-  </div>
+      <!-- Les points ET les valeurs -->
+      @for (item of data; track item.label; let i = $index) {
+        <!-- Point réduit (r=1 au lieu de 1.5) -->
+        <circle 
+          [attr.cx]="(i / (data.length - 1 || 1)) * 100" 
+          [attr.cy]="100 - (item.value / maxValue) * 100" 
+          r="1" 
+          [attr.fill]="color" 
+          class="chart-dot" 
+        />
+        
+        <!-- Valeur réduite (font-size=2.5 au lieu de 3) -->
+        <text 
+          [attr.x]="(i / (data.length - 1 || 1)) * 100" 
+          [attr.y]="100 - (item.value / maxValue) * 100 - 2" 
+          text-anchor="middle" 
+          font-size="2.5" 
+          fill="#64748B" 
+          font-weight="600"
+          class="chart-value"
+        >
+          {{ item.value }}
+        </text>
+      }
+    </svg>
+
+    <!-- Les labels de l'axe X -->
+    <div class="x-axis">
+      @for (item of data; track item.label) {
+        <span class="x-label">{{ item.label }}</span>
+      }
+    </div>
+  } @else {
+    <div class="chart-empty">
+      <p>Aucune réservation cette semaine</p>
+    </div>
+  }
 </div>

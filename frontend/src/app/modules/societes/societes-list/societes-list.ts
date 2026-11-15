@@ -10,7 +10,7 @@ import { Societe, SocieteStatut } from '../../../core/models/societe.model';
 import { AgentTypeLabelPipe } from '../../../shared/pipes/agent-type-label-pipe';
 import { ConfirmService } from '../../../core/services/confirm';
 import { NotificationService } from '../../../core/services/notification';
-import { MatIconModule } from '@angular/material/icon'; // ✅ Import ajouté
+import { MatIconModule } from '@angular/material/icon'; 
 
 @Component({
   selector: 'app-societes-list',
@@ -18,7 +18,7 @@ import { MatIconModule } from '@angular/material/icon'; // ✅ Import ajouté
   imports: [
     RouterLink, 
     AgentTypeLabelPipe, 
-    MatIconModule // ✅ Ajouté
+    MatIconModule 
   ],
   templateUrl: './societes-list.html',
   styleUrl: './societes-list.css',

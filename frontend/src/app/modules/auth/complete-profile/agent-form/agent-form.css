@@ -135,7 +135,7 @@ select.input {
 
 .btn-primary:hover:not(:disabled) {
   background: var(--primary-400,);
-  box-shadow: 0 8px 20px -8px rgba(14, 165, 233, 0.5);
+ 
 }
 
 .btn-primary:disabled {

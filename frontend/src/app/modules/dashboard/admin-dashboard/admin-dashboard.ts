@@ -133,17 +133,29 @@ export class AdminDashboard implements OnInit {
           { label: 'Rejetés', value: this.count(agents, (a) => a.status === AgentStatus.REJETE), color: '#EF4444' },
         ]);
 
-        // ✅ Graphique d'évolution (Area) - Données mockées pour l'instant
-        // À remplacer par de vraies données API quand le backend sera prêt
-        this.evolutionChart.set([
-          { label: 'Lun', value: 12 },
-          { label: 'Mar', value: 19 },
-          { label: 'Mer', value: 15 },
-          { label: 'Jeu', value: 28 },
-          { label: 'Ven', value: 42 },
-          { label: 'Sam', value: 35 },
-          { label: 'Dim', value: 50 },
-        ]);
+        // ✅ Graphique d'évolution (Area) - Vraies données API (7 derniers jours)
+        const today = new Date();
+        const evolution: AreaChartPoint[] = [];
+
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          
+          // Formatage : "Lun 10", "Mar 11", etc.
+          const label = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+          
+          // Filtrer les réservations de ce jour précis
+          const count = reservations.filter(res => {
+            const resDate = new Date(res.dateReservation);
+            return resDate.getDate() === d.getDate() && 
+                   resDate.getMonth() === d.getMonth() && 
+                   resDate.getFullYear() === d.getFullYear();
+          }).length;
+
+          evolution.push({ label, value: count });
+        }
+
+        this.evolutionChart.set(evolution);
 
         this.loading.set(false);
       });

@@ -9,5 +9,5 @@ export const ABONNEMENTS_ROUTES: Routes = [
   canActivate: [rolesGuard],
   data: { roles: ['ADMIN', 'AGENT'] },
   loadComponent: () => import('../abonnements/abonnements-page').then((m) => m.AbonnementsPage),
-}
+ }
 ];

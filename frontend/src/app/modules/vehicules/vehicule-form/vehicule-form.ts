@@ -36,13 +36,12 @@ export class VehiculeForm implements OnInit {
     annee: [null as number | null],
     capacite: [1, [Validators.required, Validators.min(1)]],
     couleur: [''],
-    numeroChassis: [''],
+    // ✅ SUPPRIMÉ : numeroChassis
     dateAssurance: [''],
     dateVisiteTechnique: [''],
     moyenTransId: [null as number | null, [Validators.required]],
   });
 
-  // ✅ Computed : moyen de transport actuellement sélectionné
   selectedMoyenTrans = computed(() => {
     const id = this.form.get('moyenTransId')?.value;
     if (!id) return null;
@@ -75,7 +74,7 @@ export class VehiculeForm implements OnInit {
             annee: v.annee ?? null,
             capacite: v.capacite,
             couleur: v.couleur ?? '',
-            numeroChassis: v.numeroChassis ?? '',
+            // ✅ SUPPRIMÉ : numeroChassis
             dateAssurance: v.dateAssurance
               ? v.dateAssurance.slice(0, 10)
               : '',
@@ -138,13 +137,6 @@ export class VehiculeForm implements OnInit {
     });
   }
 
-  // ============================================================
-  // ✅ HELPERS
-  // ============================================================
-
-  /**
-   * Vérifie si une date est déjà passée
-   */
   isDatePassee(dateStr: string | null | undefined): boolean {
     if (!dateStr) return false;
     const date = new Date(dateStr);
@@ -153,9 +145,6 @@ export class VehiculeForm implements OnInit {
     return date < today;
   }
 
-  /**
-   * Retourne l'icône Material associée au type de moyen de transport
-   */
   getMoyenTransIcon(nom?: string, type?: string): string {
     const source = `${nom ?? ''} ${type ?? ''}`.toLowerCase();
 

@@ -78,7 +78,6 @@
         </div>
 
         <!-- SECTION 3 : IDENTIFIANTS LÉGAUX -->
-        <!-- SECTION 3 : IDENTIFIANTS LÉGAUX -->
 <div class="form-section">
   <h3 class="section-title"><span class="section-num">3</span> Identifiants légaux</h3>
   <div class="grid-2">
@@ -105,7 +104,7 @@
         Numéro Statistique <span class="req">*</span>
         @if (isEditMode()) { <mat-icon class="lock-icon" matTooltip="Verrouillé">lock</mat-icon> }
       </label>
-      <input type="text" formControlName="numState" class="input" placeholder="RCS-001" [readonly]="isEditMode()" />
+      <input type="text" formControlName="numState" class="input" placeholder="numState" [readonly]="isEditMode()" />
       @if (form.get('numState')?.hasError('required') && form.get('numState')?.touched) {
         <p class="field-error">Numéro Statistique requis</p>
       }

@@ -12,6 +12,7 @@ export enum MoyenTransType {
   TAXI_BROUSSE = 'TAXI_BROUSSE',
   FERRY = 'FERRY',
   CAMION = 'CAMION',
+  AUTRE = 'AUTRE',
 }
 
 @Entity('moyens_trans')
@@ -24,7 +25,7 @@ export class MoyenTrans {
   type!: MoyenTransType;
 
   @Column()
-  nom!: string; // Ex: "Bus Express", "Train Premium"
+  nom!: string; 
 
   @Column({ nullable: true })
   description?: string;

@@ -11,7 +11,6 @@ import { UpdateSocieteDto } from './dto/update-societe.dto';
 import { FilterSocietesDto } from './dto/filter-societe.dto';
 import { ValidateSocieteDto } from './dto/validate-societe.dto';
 import { activeSubscriptionSql, hasActiveSubscription } from '../../common/utils/subscription.util';
-
 import { NotificationsService } from '../notifications/notifications.service';
 import {
   NotificationType,

@@ -15,7 +15,6 @@ import { AbonnementType } from 'src/entities/abonnement.entity';
 export class SocietesController {
   constructor(private readonly societesService: SocietesService) {}
 
-  // ✅ Sociétés validées ET abonnées (abonnement payé, non expiré)
   @Public()
   @Get('public')
   findAllPublic(@Query(ValidationPipe) filter: FilterSocietesDto) {

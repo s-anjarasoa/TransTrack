@@ -8,6 +8,7 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Status, AgentStatus } from './status.entity';
 import { User } from './user.entity';
@@ -55,16 +56,12 @@ export class Agent {
   @Column({ type: 'enum', enum: AgentStatus, default: AgentStatus.EN_ATTENTE })
   status!: AgentStatus;
 
-  // ✅ Empreinte (HMAC) du code d'invitation à usage unique.
-  // Le code lui-même n'est jamais stocké : il n'existe que dans l'e-mail.
   @Column({ type: 'varchar', length: 64, nullable: true })
   codeHash!: string | null;
 
-  // ✅ Date d'expiration du code courant
   @Column({ type: 'timestamptz', nullable: true })
   codeExpiresAt!: Date | null;
 
-  // ✅ Nombre de saisies incorrectes pour le code courant (anti force brute)
   @Column({ type: 'int', default: 0 })
   codeAttempts!: number;
 
@@ -73,6 +70,9 @@ export class Agent {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
 
   @OneToMany(() => Status, (status) => status.agent)
   statusHistory!: Status[];

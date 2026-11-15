@@ -43,17 +43,6 @@ export class AgentsService {
     private authService: AuthService,
   ) {}
 
-  // ============================================================
-  // AUTORISATIONS
-  // ============================================================
-  /**
-   * Vérifie que `requester` peut accéder à `agent`.
-   * - ADMIN : toujours autorisé (retourne null)
-   * - Sinon : doit être un agent VALIDE de la MÊME société
-   * - manage=true : doit en plus être Directeur ou Gérant, ne pas viser
-   *   son propre compte, et ne pas viser un Directeur.
-   * Retourne l'agent du demandeur (ou null pour un ADMIN).
-   */
   private async assertCanAccess(
     agent: Agent,
     requester: Requester,
@@ -99,9 +88,6 @@ export class AgentsService {
     return me;
   }
 
-  // ============================================================
-  // CRÉATION PAR ADMIN
-  // ============================================================
   async createByAdmin(dto: CreateAgentDto): Promise<Agent> {
     const existingUser = await this.userRepository.findOne({
       where: { email: dto.email },
@@ -151,9 +137,6 @@ export class AgentsService {
     });
   }
 
-  // ============================================================
-  // LECTURE
-  // ============================================================
   async findAll(filter: FilterAgentsDto, requestingUser: Requester) {
     const page = filter.page ?? 1;
     const limit = filter.limit ?? 10;
@@ -211,16 +194,12 @@ export class AgentsService {
     return agent;
   }
 
-  /** Lecture d'un agent avec contrôle d'accès (même société ou ADMIN) */
   async findOneFor(id: number, requester: Requester): Promise<Agent> {
     const agent = await this.findOne(id);
     await this.assertCanAccess(agent, requester, { manage: false });
     return agent;
   }
 
-  // ============================================================
-  // MISE À JOUR
-  // ============================================================
   async update(
     id: number,
     dto: UpdateAgentDto,
@@ -235,13 +214,11 @@ export class AgentsService {
       const me = await this.assertCanAccess(agent, requester, { manage: false });
 
       if (me && me.id === agent.id) {
-        // Un agent ne peut modifier que ses coordonnées
         const { phone, address } = dto as any;
         values = {};
         if (phone !== undefined) values.phone = phone;
         if (address !== undefined) values.address = address;
       } else {
-        // Directeur/Gérant : pas de changement de statut, société ni utilisateur
         await this.assertCanAccess(agent, requester, { manage: true });
         const { status, societeId, userId, ...rest } = dto as any;
         values = rest;
@@ -259,11 +236,6 @@ export class AgentsService {
     return this.findOne(id);
   }
 
-  // ============================================================
-  // ✅ CHANGEMENT DE STATUT
-  // EN_ATTENTE -> PRE_VALIDE : envoie le code d'invitation par e-mail
-  // PRE_VALIDE -> VALIDE      : se fait par la saisie du code (AuthService)
-  // ============================================================
   async changeStatus(
     id: number,
     dto: ChangeAgentStatusDto,
@@ -274,10 +246,6 @@ export class AgentsService {
 
     await this.assertCanAccess(agent, requester, { manage: true });
 
-    // Pour un Directeur/Gérant, « valider » une demande en cours = l'approuver :
-    // le statut devient PRE_VALIDE et le code d'invitation est (ré)envoyé.
-    // La validation finale (VALIDE) ne se fait que par la saisie du code
-    // (seul un ADMIN peut valider directement).
     let targetStatus = dto.status;
     if (
       !isAdmin &&
@@ -306,12 +274,10 @@ export class AgentsService {
       isActive: targetStatus === AgentStatus.VALIDE,
     });
 
-    // ✅ PRE_VALIDE → générer et envoyer le code par e-mail
     if (targetStatus === AgentStatus.PRE_VALIDE) {
       await this.authService.issueInvitationCode(id);
     }
 
-    // ✅ VALIDE (par un ADMIN uniquement) → l'utilisateur devient AGENT
     if (targetStatus === AgentStatus.VALIDE) {
       const agentRole = await this.rolesService.findByName('AGENT');
       if (!agentRole) throw new NotFoundException('Rôle AGENT non trouvé');
@@ -330,8 +296,6 @@ export class AgentsService {
       });
     }
 
-    // ✅ REJETE → l'utilisateur reste PENDING et actif (il voit le refus et
-    // peut renvoyer une demande) ; le code éventuel est invalidé.
     if (targetStatus === AgentStatus.REJETE) {
       await this.agentRepository.update(id, {
         codeHash: null,
@@ -351,8 +315,8 @@ export class AgentsService {
 
     return this.findOne(id);
   }
+
   async createTeamAgent(dto: CreateAgentDto, requester: Requester) {
-    // 1. Récupérer l'agent connecté pour trouver son societeId
     const me = await this.agentRepository.findOne({
       where: { userId: requester.id },
     });
@@ -361,7 +325,6 @@ export class AgentsService {
       throw new ForbiddenException("Impossible de déterminer votre société.");
     }
 
-    // 2. Vérifier si l'email est déjà pris
     const existingUser = await this.userRepository.findOne({
       where: { email: dto.email },
     });
@@ -372,7 +335,6 @@ export class AgentsService {
     const role = await this.rolesService.findByName('AGENT');
     if (!role) throw new NotFoundException('Rôle AGENT non trouvé');
 
-    // 3. Création en transaction
     const savedAgentId = await this.dataSource.transaction(async (manager) => {
       const user = manager.create(User, {
         email: dto.email,
@@ -391,18 +353,15 @@ export class AgentsService {
         phone: dto.phone,
         address: dto.address,
         type: dto.type,
-        societeId: me.societeId, // ⚠️ Assurez-vous que me.societeId existe bien
+        societeId: me.societeId,
         status: AgentStatus.PRE_VALIDE,
       });
       const savedAgent = await manager.save(agent);
       return savedAgent.id;
     });
 
-    // 4. Appel de l'envoi du code d'invitation hors de la transaction (ou proprement)
-    // En passant par un findOne complet pour que les relations (societe, user) soient chargées
     await this.authService.issueInvitationCode(savedAgentId);
 
-    // 5. Renvoyer l'agent complet
     const finalAgent = await this.findOne(savedAgentId);
     return {
       agent: finalAgent,
@@ -411,8 +370,48 @@ export class AgentsService {
   }
 
   async remove(id: number): Promise<void> {
-    const result = await this.agentRepository.delete(id);
-    if (result.affected === 0)
+    const agent = await this.agentRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+
+    if (!agent) {
       throw new NotFoundException(`Agent avec l'ID ${id} non trouvé`);
+    }
+
+    if (agent.type === AgentType.DIRECTEUR) {
+      throw new ForbiddenException(
+        'Un Directeur ne peut pas être supprimé. Contactez un administrateur.',
+      );
+    }
+
+    await this.agentRepository.softDelete(id);
+
+    if (agent.userId) {
+      await this.userRepository.update(agent.userId, { isActive: false });
+    }
+
+    this.logger.log(
+      `Agent ${id} (${agent.user?.email ?? 'email inconnu'}) supprimé (soft delete) et compte désactivé.`,
+    );
+  }
+
+  async restore(id: number): Promise<Agent> {
+    const agent = await this.agentRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!agent) throw new NotFoundException('Agent introuvable');
+    if (!agent.deletedAt) throw new BadRequestException("Cet agent n'est pas supprimé");
+
+    await this.agentRepository.restore(id);
+
+    if (agent.userId) {
+      await this.userRepository.update(agent.userId, { isActive: true });
+    }
+
+    this.logger.log(`Agent ${id} restauré.`);
+    return this.findOne(id);
   }
 }

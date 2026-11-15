@@ -25,6 +25,4 @@ export class CreateSocieteDto {
   @Length(1, 20)
   numState!: string;
 
-  // directeurId retiré : déduit de req.user côté service
-  // isValide/statut retirés : jamais modifiable à la création
 }

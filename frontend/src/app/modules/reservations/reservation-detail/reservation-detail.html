@@ -62,7 +62,8 @@
           </div>
         </div>
 
-        @if (reservation()!.statut === ReservationStatut.CONFIRMEE) {
+        <!-- ✅ MODIFICATION ICI : Masquer le paiement pour les agents et admins -->
+        @if (reservation()!.statut === ReservationStatut.CONFIRMEE && !isAgent && !isAdmin) {
           <div class="card action-card pay-card">
             <div class="action-icon"><mat-icon>payment</mat-icon></div>
             <div class="action-content">

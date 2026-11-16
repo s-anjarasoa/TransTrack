@@ -13,7 +13,7 @@ export class BagagesController {
   constructor(private readonly bagagesService: BagagesService) {}
 
   @Post()
-  @Roles('CLIENT', 'AGENT', 'ADMIN')
+  @Roles('AGENT', 'ADMIN')
   create(@Body() dto: CreateBagageDto, @Request() req) {
     return this.bagagesService.create(dto, req.user);
   }

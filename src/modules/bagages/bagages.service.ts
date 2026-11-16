@@ -9,6 +9,7 @@ import { Repository, Between, Like, In, FindOptionsWhere } from 'typeorm';
 import { Bagage, BagageType } from '../../entities/bagage.entity';
 import { Reservation, ReservationStatut } from '../../entities/reservation.entity';
 import { Agent } from '../../entities/agent.entity';
+import { Client } from '../../entities/client.entity'; // ✅ Assurez-vous d'avoir importé Client
 import { CreateBagageDto } from './dto/create-bagage.dto';
 import { UpdateBagageDto } from './dto/update-bagage.dto';
 import { FilterBagagesDto } from './dto/filter-bagage.dto';
@@ -29,6 +30,9 @@ export class BagagesService {
 
     @InjectRepository(Agent)
     private agentRepository: Repository<Agent>,
+
+    @InjectRepository(Client) // ✅ Injecter le repository Client
+    private clientRepository: Repository<Client>,
   ) {}
 
   private async getRequestingAgentSocieteId(
@@ -60,6 +64,17 @@ export class BagagesService {
 
     if (requestingUser.role === 'ADMIN') return bagage;
 
+    // Si c'est un client, on vérifie qu'il possède la réservation
+    if (requestingUser.role === 'CLIENT') {
+      // Note : le bagage.reservation.clientId est l'ID de la table Client. 
+      // On vérifie si le client connecté correspond.
+      if (bagage.reservation?.clientId !== requestingUser.id) {
+        throw new ForbiddenException('Ce bagage ne vous appartient pas');
+      }
+      return bagage;
+    }
+
+    // Si c'est un agent, on vérifie la société
     const societeId = await this.getRequestingAgentSocieteId(requestingUser);
     const bagageSocieteId = bagage.reservation?.voyage?.societeId;
 
@@ -70,7 +85,7 @@ export class BagagesService {
     return bagage;
   }
 
-    async create(dto: CreateBagageDto, requestingUser: RequestingUser): Promise<Bagage> {
+  async create(dto: CreateBagageDto, requestingUser: RequestingUser): Promise<Bagage> {
     const reservation = await this.reservationRepository.findOne({
       where: { id: dto.reservationId },
       relations: { voyage: true },
@@ -80,9 +95,9 @@ export class BagagesService {
       throw new NotFoundException('Réservation introuvable');
     }
 
-    // Vérification de sécurité : seul un agent ou admin peut ajouter un bagage
+    // ✅ SÉCURITÉ : Seuls les agents et admins peuvent ajouter un bagage
     if (requestingUser.role === 'CLIENT') {
-       throw new ForbiddenException('Seul un agent peut ajouter des bagages.');
+       throw new ForbiddenException('Seul un agent ou un administrateur peut ajouter des bagages.');
     }
 
     const societeId = await this.getRequestingAgentSocieteId(requestingUser);
@@ -109,12 +124,13 @@ export class BagagesService {
 
     const bagage = this.bagageRepository.create({
       ...dto,
-      supplementPrix, // On assigne le prix calculé
+      supplementPrix,
       numeroEtiquette: this.generateNumeroEtiquette(),
     });
 
     return this.bagageRepository.save(bagage);
   }
+
   async findAll(filter: FilterBagagesDto, requestingUser: RequestingUser) {
     const page = filter.page ?? 1;
     const limit = filter.limit ?? 10;
@@ -126,7 +142,6 @@ export class BagagesService {
       where.poids = Between(filter.poidsMin, filter.poidsMax);
     }
 
-    // ✅ Isolation par société corrigée : utilise In() sur les IDs réellement autorisés
     if (requestingUser.role !== 'ADMIN') {
       const societeId = await this.getRequestingAgentSocieteId(requestingUser);
       if (!societeId) return { data: [], total: 0, page, limit };
@@ -227,23 +242,41 @@ export class BagagesService {
     return bagage;
   }
 
-  /** ✅ Point d'entrée public : vérifie toujours l'appartenance avant de renvoyer le bagage */
   async findOne(id: number, requestingUser: RequestingUser): Promise<Bagage> {
     return this.assertOwnership(id, requestingUser);
   }
 
-  /** ✅ Vérifie que la réservation appartient bien à l'appelant avant de lister ses bagages */
+  /** ✅ CORRECTION FINALE : Permet au client de voir ses propres bagages */
   async findByReservation(reservationId: number, requestingUser: RequestingUser): Promise<Bagage[]> {
     const reservation = await this.reservationRepository.findOne({
       where: { id: reservationId },
-      relations: { voyage: true },
+      // ✅ On charge la relation client ET son utilisateur
+      relations: { voyage: true, client: true },
     });
+    
     if (!reservation) throw new NotFoundException('Réservation introuvable');
 
     if (requestingUser.role !== 'ADMIN') {
-      const societeId = await this.getRequestingAgentSocieteId(requestingUser);
-      if (!societeId || reservation.voyage?.societeId !== societeId) {
-        throw new ForbiddenException('Cette réservation n\'appartient pas à votre société');
+      
+      // ✅ Si c'est un client, on vérifie qu'il est le propriétaire
+      if (requestingUser.role === 'CLIENT') {
+        // On récupère le user associé au client de la réservation
+        const clientUser = await this.clientRepository.findOne({
+          where: { id: reservation.clientId },
+          relations: { user: true }, // Assurez-vous que l'entité Client a bien une relation "user"
+        });
+
+        // Si le client n'a pas d'user associé, ou si l'ID user ne correspond pas à l'ID du token
+        if (!clientUser?.user || clientUser.user.id !== requestingUser.id) {
+           throw new ForbiddenException('Cette réservation ne vous appartient pas');
+        }
+      } 
+      // ✅ Si c'est un agent, on vérifie qu'il est de la même société
+      else {
+        const societeId = await this.getRequestingAgentSocieteId(requestingUser);
+        if (!societeId || reservation.voyage?.societeId !== societeId) {
+          throw new ForbiddenException('Cette réservation n\'appartient pas à votre société');
+        }
       }
     }
 

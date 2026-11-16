@@ -6,10 +6,11 @@ import { Bagage } from '../../entities/bagage.entity';
 import { Reservation } from '../../entities/reservation.entity';
 import { Agent } from '../../entities/agent.entity';
 import { AuthModule } from '../auth/auth.module';
+import { Client } from '../../entities/client.entity'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Bagage, Reservation, Agent]),
+    TypeOrmModule.forFeature([Bagage, Reservation, Agent, Client]),
     AuthModule,
   ],
   controllers: [BagagesController],
